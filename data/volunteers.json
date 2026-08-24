@@ -1,0 +1,21 @@
+[
+  {
+    "city": "Madhapar, Bhuj, Gujarat",
+    "id": "OM-VOL-TEST999",
+    "roles": [
+      "meal_distribution",
+      "food_prep"
+    ],
+    "registeredAt": "2026-08-20T12:21:42Z",
+    "fullName": "Demo Volunteer (Vansh Solanki)",
+    "ageGroup": "18-25",
+    "availability": [
+      "Friday Meals (Women-led)",
+      "Weekends (Sat & Sun)"
+    ],
+    "preferredShift": "Morning (8:00 AM - 12:00 PM)",
+    "emergencyReliefOptIn": true,
+    "phone": "9876543210",
+    "email": "vansh.solanki58@gmail.com"
+  }
+]

@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Om Foundation | Live Interactive Preview</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Plus Jakarta Sans Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- React & Babel for zero-build instant preview -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const INITIAL_NOTIFICATIONS = [
+      {
+        id: 'n1',
+        title: 'Friday Meal (Women-led) - 6:00 PM',
+        message: 'Join our women seva team this Friday evening at 6:00 PM at Madhapar Center, Bhuj.',
+        category: 'drives',
+        timestamp: '30 mins ago',
+        read: false,
+      },
+      {
+        id: 'n2',
+        title: 'Sunday Milk & Biscuit Breakfast - 8:30 AM',
+        message: 'Morning breakfast drive starts at 8:30 AM this Sunday across Bhuj shelters.',
+        category: 'drives',
+        timestamp: '2 hours ago',
+        read: false,
+      }
+    ];
+
+    const PROGRAMS = [
+      {
+        title: "Friday Meal (Women-led)",
+        subtitle: "Nourishment with Maternal Care",
+        desc: "Every Friday evening, dedicated women volunteers gather to prepare, pack, and distribute wholesome, hot meals to vulnerable families, elderly citizens, and children in Bhuj.",
+        schedule: "Friday, 6:00 PM Evening",
+        icon: "🍲",
+        badgeColor: "bg-amber-100 text-amber-900 border-amber-300"
+      },
+      {
+        title: "Sunday Milk & Biscuit Breakfast",
+        subtitle: "Morning Hunger Relief",
+        desc: "Fresh, warm milk and nutritious biscuit breakfast distribution for children, daily-wage workers, and shelter residents across our morning distribution routes.",
+        schedule: "Sunday, 8:30 AM Morning",
+        icon: "🥛",
+        badgeColor: "bg-orange-100 text-orange-900 border-orange-300"
+      },
+      {
+        title: "Sunday Shibir, Bhuj",
+        subtitle: "Spiritual Sadhana & Community Gathering",
+        desc: "A spiritual sanctuary for collective chanting, meditation, discourse on inner peace, and community seva at our Madhapar center in Bhuj.",
+        schedule: "Will be told via WhatsApp group",
+        icon: "☀️",
+        badgeColor: "bg-emerald-100 text-emerald-900 border-emerald-300"
+      },
+      {
+        title: "Female Only Shibir",
+        subtitle: "Empowerment & Women's Spiritual Retreat",
+        desc: "A dedicated sanctuary session exclusively for women to practice meditation, devotional chanting, spiritual bonding, and holistic wellness in a supportive, sacred space.",
+        schedule: "Dates will be given in WhatsApp group",
+        icon: "🌸",
+        badgeColor: "bg-emerald-100 text-emerald-900 border-emerald-300"
+      }
+    ];
+
+    function App() {
+      const [currentPage, setCurrentPage] = useState('home');
+      const [drawerOpen, setDrawerOpen] = useState(false);
+      const [uploadModalOpen, setUploadModalOpen] = useState(false);
+      const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+      const [registeredVolunteers, setRegisteredVolunteers] = useState(() => {
+        try {
+          const stored = localStorage.getItem('om_preview_volunteers');
+          return stored ? JSON.parse(stored) : [];
+        } catch {
+          return [];
+        }
+      });
+      const [mealDays, setMealDays] = useState(() => {
+        try {
+          const stored = localStorage.getItem('om_preview_meal_days');
+          return stored ? JSON.parse(stored) : [];
+        } catch {
+          return [];
+        }
+      });
+
+      const [currentMonth, setCurrentMonth] = useState(new Date());
+      const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+      const [uploadForm, setUploadForm] = useState({
+        passcode: '',
+        date: new Date().toISOString().split('T')[0],
+        meals: 45,
+        caption: '',
+        files: []
+      });
+
+      const [volForm, setVolForm] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        city: 'Madhapar, Bhuj',
+        roles: ['meal_distribution'],
+        availability: ['Friday Meal (6 PM)'],
+      });
+      const [successModalData, setSuccessModalData] = useState(null);
+
+      const unreadCount = notifications.filter(n => !n.read).length;
+      const totalMealsCount = mealDays.reduce((sum, d) => sum + (d.mealsServed || 0), 0);
+      const totalPhotosCount = mealDays.reduce((sum, d) => sum + (d.photos?.length || 0), 0);
+
+      const saveDays = (newDays) => {
+        setMealDays(newDays);
+        try {
+          localStorage.setItem('om_preview_meal_days', JSON.stringify(newDays));
+        } catch(e){}
+      };
+
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+      const daysMap = new Map();
+      mealDays.forEach(d => daysMap.set(d.servedOn, d));
+
+      const handleFileUpload = (e) => {
+        if (!e.target.files) return;
+        const files = Array.from(e.target.files);
+        files.forEach(f => {
+          const r = new FileReader();
+          r.onload = ev => {
+            setUploadForm(prev => ({
+              ...prev,
+              files: [...prev.files, { name: f.name, url: ev.target.result }].slice(0, 12)
+            }));
+          };
+          r.readAsDataURL(f);
+        });
+      };
+
+      const handleSaveUpload = (e) => {
+        e.preventDefault();
+        if (uploadForm.passcode !== 'vanshsolanki16') {
+          alert('❌ Incorrect Admin Passcode! Please enter vanshsolanki16.');
+          return;
+        }
+        if (uploadForm.files.length === 0) {
+          alert('Please select at least one photo of the meal served.');
+          return;
+        }
+
+        const mealsToAdd = Number(uploadForm.meals) || 1;
+        const perPhoto = Math.max(1, Math.round(mealsToAdd / uploadForm.files.length));
+        const newPhotos = uploadForm.files.map((f, i) => ({
+          id: 'p-' + Date.now() + '-' + i,
+          url: f.url,
+          caption: `om foundation meals served - ${uploadForm.date} - ${f.name}`,
+          countedRecipients: perPhoto
+        }));
+
+        const existingIdx = mealDays.findIndex(d => d.servedOn === uploadForm.date);
+        let updated;
+        if (existingIdx >= 0) {
+          updated = [...mealDays];
+          updated[existingIdx] = {
+            ...updated[existingIdx],
+            mealsServed: updated[existingIdx].mealsServed + mealsToAdd,
+            photos: [...updated[existingIdx].photos, ...newPhotos]
+          };
+        } else {
+          updated = [{
+            id: 'd-' + Date.now(),
+            servedOn: uploadForm.date,
+            mealsServed: mealsToAdd,
+            notes: uploadForm.caption,
+            photos: newPhotos
+          }, ...mealDays];
+        }
+
+        saveDays(updated);
+        setSelectedDate(uploadForm.date);
+        setUploadModalOpen(false);
+        setUploadForm({ passcode: '', date: new Date().toISOString().split('T')[0], meals: 45, caption: '', files: [] });
+
+        setNotifications([{
+          id: 'n-' + Date.now(),
+          title: 'Meal Drive Uploaded 🍲',
+          message: `${uploadForm.files.length} photo(s) recorded and ${mealsToAdd} meals counted. Synced to Google Drive.`,
+          category: 'drives',
+          timestamp: 'Just now',
+          read: false
+        }, ...notifications]);
+      };
+
+      const handleVolSubmit = (e) => {
+        e.preventDefault();
+        if (!volForm.name || !volForm.phone) return;
+        const newId = 'OM-VOL-' + Math.floor(100000 + Math.random() * 900000);
+        const updated = [{ ...volForm, id: newId }, ...registeredVolunteers];
+        setRegisteredVolunteers(updated);
+        try {
+          localStorage.setItem('om_preview_volunteers', JSON.stringify(updated));
+        } catch(e){}
+
+        setNotifications([{
+          id: 'n-' + Date.now(),
+          title: 'Volunteer Application Confirmed',
+          message: `Welcome ${volForm.name}! Application mailed to vansh.solanki58@gmail.com (Pass: ${newId}).`,
+          category: 'volunteers',
+          timestamp: 'Just now',
+          read: false
+        }, ...notifications]);
+
+        setSuccessModalData({ id: newId, name: volForm.name });
+      };
+
+      const selectedDay = daysMap.get(selectedDate);
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* Header */}
+          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-amber-200/60 shadow-xs">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+              <div onClick={() => setCurrentPage('home')} className="flex items-center gap-3 cursor-pointer">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white text-xl font-bold shadow-sm">
+                  ☀️
+                </div>
+                <div>
+                  <span className="font-extrabold text-lg text-slate-900 tracking-tight block leading-tight">Om Foundation</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-700 tracking-widest block">Sadhana & Seva • Bhuj</span>
+                </div>
+              </div>
+
+              <nav className="hidden md:flex items-center gap-1.5">
+                <button onClick={() => setCurrentPage('home')} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${currentPage === 'home' ? 'text-amber-800 bg-amber-50' : 'text-slate-600 hover:bg-slate-100'}`}>Home</button>
+                <button onClick={() => setCurrentPage('programs')} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${currentPage === 'programs' ? 'text-amber-800 bg-amber-50' : 'text-slate-600 hover:bg-slate-100'}`}>Programs</button>
+                <button onClick={() => setCurrentPage('volunteer')} className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-xs">
+                  🤝 Volunteer
+                </button>
+                <button onClick={() => setCurrentPage('gallery')} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${currentPage === 'gallery' ? 'text-amber-800 bg-amber-50' : 'text-slate-600 hover:bg-slate-100'}`}>Meal Calendar</button>
+                <button onClick={() => setCurrentPage('contact')} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${currentPage === 'contact' ? 'text-amber-800 bg-amber-50' : 'text-slate-600 hover:bg-slate-100'}`}>Contact</button>
+              </nav>
+
+              <button onClick={() => setDrawerOpen(true)} className="relative p-2.5 rounded-full hover:bg-slate-100 text-slate-700">
+                <span className="text-xl">🔔</span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </header>
+
+          {/* Main Body */}
+          <main className="flex-1">
+            {currentPage === 'home' && (
+              <div className="space-y-16 pb-16">
+                <div className="bg-gradient-to-b from-amber-50/70 via-white to-slate-50 py-16 px-4 sm:px-6 border-b border-amber-200/60">
+                  <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    <div className="lg:col-span-7 space-y-6">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold">
+                        ☀️ Feeding Bodies, Nurturing Souls • Bhuj
+                      </div>
+                      <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                        Nourishing Communities. Empowering Lives.
+                      </h1>
+                      <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
+                        Join Om Foundation's mission in Madhapar, Bhuj to serve warm, wholesome daily meals with love and spiritual dignity.
+                      </p>
+                      <div className="flex flex-wrap gap-3 pt-2">
+                        <button onClick={() => setCurrentPage('volunteer')} className="px-8 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-2xl shadow-lg text-sm">
+                          Volunteer Application →
+                        </button>
+                        <button onClick={() => setCurrentPage('gallery')} className="px-6 py-3.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold rounded-2xl text-sm">
+                          View Meal Calendar
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="lg:col-span-5 bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-xl space-y-4">
+                      <h3 className="font-extrabold text-slate-900 text-base">Live Foundation Impact</h3>
+                      <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 flex justify-between items-center">
+                        <div>
+                          <span className="text-xs text-slate-500 block">Total Meals Served</span>
+                          <span className="text-3xl font-black text-slate-900 block">{totalMealsCount.toLocaleString()}</span>
+                        </div>
+                        <span className="text-3xl">🍲</span>
+                      </div>
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
+                        <div>
+                          <span className="text-xs text-slate-500 block">Registered Volunteers</span>
+                          <span className="text-2xl font-black text-slate-900 block">{registeredVolunteers.length}</span>
+                        </div>
+                        <span className="text-3xl">👥</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Guruji & Guruma Section */}
+                <div className="max-w-6xl mx-auto px-4 sm:px-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                    <div className="bg-white rounded-3xl border border-amber-100 p-6 sm:p-8 shadow-sm space-y-6">
+                      <div className="h-72 w-full rounded-2xl bg-gradient-to-b from-[#f7f1e7] to-[#ede3d2] flex flex-col items-center justify-center">
+                        <span className="text-5xl">☀️</span>
+                        <span className="text-xs font-bold text-amber-800/60 uppercase tracking-wider mt-3">Spiritual Guide</span>
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-extrabold text-slate-900">Guruji</h2>
+                        <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                          A brief biography will go here — his journey, his teachings, and the role he plays in guiding seekers through spiritual talks and personal problem-solving.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-3xl border border-amber-100 p-6 sm:p-8 shadow-sm space-y-6">
+                      <div className="h-72 w-full rounded-2xl bg-gradient-to-b from-[#f7f1e7] to-[#ede3d2] flex flex-col items-center justify-center">
+                        <span className="text-5xl">🌸</span>
+                        <span className="text-xs font-bold text-orange-800/60 uppercase tracking-wider mt-3">Motherly Love</span>
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-extrabold text-slate-900">Guruma</h2>
+                        <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                          A brief biography will go here — her devotion, her service to the community, and the nurturing energy she brings to every meal and shibir.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Programs Highlight */}
+                <div className="max-w-6xl mx-auto px-4 sm:px-6">
+                  <h2 className="text-2xl font-black text-slate-900 text-center mb-8">Our Regular Seva Programs</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-white p-6 rounded-3xl border border-amber-100 shadow-xs">
+                      <span className="text-2xl">🍲</span>
+                      <h3 className="text-base font-bold text-slate-900 mt-2 mb-1">Friday Meal (Women-led)</h3>
+                      <span className="text-[11px] font-bold text-amber-700 block mb-2">Every Friday, 6:00 PM Evening</span>
+                      <p className="text-xs text-slate-600">Wholesome dinner prepared and served by our women volunteers in Bhuj.</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-3xl border border-amber-100 shadow-xs">
+                      <span className="text-2xl">🥛</span>
+                      <h3 className="text-base font-bold text-slate-900 mt-2 mb-1">Sunday Milk & Biscuit Breakfast</h3>
+                      <span className="text-[11px] font-bold text-orange-700 block mb-2">Every Sunday, 8:30 AM Morning</span>
+                      <p className="text-xs text-slate-600">Fresh morning breakfast for children, laborers, and shelter residents.</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-3xl border border-amber-100 shadow-xs">
+                      <span className="text-2xl">☀️</span>
+                      <h3 className="text-base font-bold text-slate-900 mt-2 mb-1">Sunday & Female Only Shibirs</h3>
+                      <span className="text-[11px] font-bold text-emerald-700 block mb-2">Dates via WhatsApp Group</span>
+                      <p className="text-xs text-slate-600">Spiritual chanting, meditation retreats, and sacred community gatherings.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Programs Page */}
+            {currentPage === 'programs' && (
+              <div className="py-12 px-4 sm:px-6 max-w-6xl mx-auto space-y-8">
+                <div className="text-center space-y-2">
+                  <span className="px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-bold uppercase">Our Initiatives</span>
+                  <h2 className="text-3xl font-black text-slate-900">Seva & Sadhana Programs</h2>
+                  <p className="text-sm text-slate-600">Madhapar Center, Bhuj, Gujarat</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {PROGRAMS.map((p, i) => (
+                    <div key={i} className="bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-xs flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-3xl">{p.icon}</span>
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full border ${p.badgeColor}`}>
+                            {p.schedule}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900">{p.title}</h3>
+                        <p className="text-xs text-amber-700 font-semibold mb-2">{p.subtitle}</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">{p.desc}</p>
+                      </div>
+                      <div className="pt-3 border-t flex justify-between items-center">
+                        <button onClick={() => setCurrentPage('volunteer')} className="text-xs font-bold text-amber-700 hover:underline">Volunteer →</button>
+                        <button onClick={() => alert('Opening WhatsApp group info')} className="px-3 py-1.5 bg-amber-500 text-white rounded-xl text-xs font-bold">Join Group</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Gallery / Calendar Page */}
+            {currentPage === 'gallery' && (
+              <div className="py-10 px-4 sm:px-6 max-w-6xl mx-auto space-y-8">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 border-b border-amber-200 pb-4">
+                  <div>
+                    <h2 className="text-3xl font-black text-slate-900">Meal Distribution Calendar</h2>
+                    <p className="text-xs text-slate-600 mt-1">Select a highlighted date to view photos of meals distributed on that day.</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setUploadForm(p => ({ ...p, date: selectedDate }));
+                      setUploadModalOpen(true);
+                    }}
+                    className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm"
+                  >
+                    + Upload Meal Photos
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="bg-white p-5 rounded-2xl border border-amber-100 shadow-xs">
+                    <span className="text-xs text-slate-500 block">Total Meals Served</span>
+                    <span className="text-2xl font-black text-slate-900">{totalMealsCount.toLocaleString()}</span>
+                  </div>
+                  <div className="bg-white p-5 rounded-2xl border border-amber-100 shadow-xs">
+                    <span className="text-xs text-slate-500 block">Uploaded Meal Photos</span>
+                    <span className="text-2xl font-black text-slate-900">{totalPhotosCount}</span>
+                  </div>
+                  <div className="bg-white p-5 rounded-2xl border border-amber-100 shadow-xs">
+                    <span className="text-xs text-slate-500 block">Active Distribution Dates</span>
+                    <span className="text-2xl font-black text-amber-700">{mealDays.length}</span>
+                  </div>
+                </div>
+
+                {/* Calendar */}
+                <div className="bg-white rounded-3xl border border-amber-100 p-6 sm:p-8 shadow-xs space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-slate-900">{monthNames[month]} {year}</h3>
+                    <div className="flex gap-1">
+                      <button onClick={() => setCurrentMonth(new Date(year, month - 1, 1))} className="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold">‹ Prev</button>
+                      <button onClick={() => setCurrentMonth(new Date(year, month + 1, 1))} className="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold">Next ›</button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs font-bold text-slate-400">
+                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1 sm:gap-2">
+                    {Array.from({ length: firstDay }).map((_, i) => (
+                      <div key={'emp-' + i} className="h-16 rounded-xl bg-slate-50/50" />
+                    ))}
+                    {Array.from({ length: daysInMonth }).map((_, i) => {
+                      const dayNum = i + 1;
+                      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
+                      const hasData = daysMap.has(dateStr);
+                      const isSel = selectedDate === dateStr;
+                      const dInfo = daysMap.get(dateStr);
+
+                      return (
+                        <button
+                          key={dateStr}
+                          onClick={() => setSelectedDate(dateStr)}
+                          className={`h-16 rounded-xl p-2 text-left flex flex-col justify-between border transition ${
+                            isSel
+                              ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-500'
+                              : hasData
+                              ? 'border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 font-bold'
+                              : 'border-slate-100 bg-white hover:bg-slate-50'
+                          }`}
+                        >
+                          <span className={`text-xs font-bold ${isSel ? 'text-amber-900' : hasData ? 'text-amber-700' : 'text-slate-700'}`}>
+                            {dayNum}
+                          </span>
+                          {hasData && (
+                            <span className="text-[10px] bg-amber-500 text-white font-bold px-1.5 py-0.5 rounded flex items-center gap-1 w-fit">
+                              🍲 {dInfo.mealsServed}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Selected Date Photos Grid */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                    <h3 className="text-xl font-bold text-slate-900">Distribution on {selectedDate}</h3>
+                    {selectedDay && (
+                      <span className="px-3 py-1 bg-amber-50 text-amber-800 font-extrabold text-xs rounded-full border border-amber-200">
+                        🍲 {selectedDay.mealsServed} Meals Recorded
+                      </span>
+                    )}
+                  </div>
+
+                  {selectedDay && selectedDay.photos.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {selectedDay.photos.map(p => (
+                        <div key={p.id} className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-xs">
+                          <img src={p.url} className="w-full h-48 object-cover" />
+                          <div className="p-4 space-y-2">
+                            <div className="flex justify-between text-xs text-slate-500">
+                              <span>{selectedDate}</span>
+                              <span className="font-bold text-amber-700">+{p.countedRecipients} Meals</span>
+                            </div>
+                            <p className="text-xs font-semibold text-slate-800">{p.caption}</p>
+                            <a href="https://drive.google.com/drive/folders/1jIbOz5tqnmTCdAOHDg_Ozu_O3MoMSEZO?usp=drive_link" target="_blank" className="text-[11px] text-amber-700 hover:underline font-bold block pt-1 border-t">
+                              📁 View in Drive (om foundation meals served) ↗
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-3xl border border-slate-200 p-10 text-center space-y-3">
+                      <span className="text-3xl">📸</span>
+                      <h4 className="text-base font-bold text-slate-900">No Photos Recorded for {selectedDate}</h4>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto">Upload a meal photo to record the count and highlight this date on the calendar.</p>
+                      <button
+                        onClick={() => {
+                          setUploadForm(p => ({ ...p, date: selectedDate }));
+                          setUploadModalOpen(true);
+                        }}
+                        className="px-4 py-2 bg-amber-500 text-white rounded-xl text-xs font-bold"
+                      >
+                        Upload Photos for {selectedDate}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Volunteer Page */}
+            {currentPage === 'volunteer' && (
+              <div className="py-12 px-4 sm:px-6 max-w-3xl mx-auto space-y-8">
+                <div className="text-center space-y-2">
+                  <span className="px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-bold uppercase">Join As Volunteer</span>
+                  <h2 className="text-3xl font-extrabold text-slate-900">Volunteer Application</h2>
+                  <p className="text-xs text-slate-500">Info will be automatically dispatched to vansh.solanki58@gmail.com</p>
+                </div>
+
+                <form onSubmit={handleVolSubmit} className="bg-white p-6 sm:p-10 rounded-3xl border border-amber-100 shadow-xl space-y-6">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
+                    <input type="text" required placeholder="e.g. Rahul Patel" value={volForm.name} onChange={e => setVolForm({...volForm, name: e.target.value})} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number (WhatsApp) *</label>
+                    <input type="tel" required placeholder="9876543210" value={volForm.phone} onChange={e => setVolForm({...volForm, phone: e.target.value})} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+                    <input type="email" placeholder="rahul@example.com" value={volForm.email} onChange={e => setVolForm({...volForm, email: e.target.value})} className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm" />
+                  </div>
+                  <button type="submit" className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl text-sm">
+                    Submit Volunteer Application
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Contact Page */}
+            {currentPage === 'contact' && (
+              <div className="py-12 px-4 max-w-xl mx-auto space-y-6">
+                <div className="text-center">
+                  <h2 className="text-3xl font-black text-slate-900">Contact Om Foundation</h2>
+                  <p className="text-xs text-slate-500 mt-1">SHRI STUTI, Plot No - 351/4, Hillview Residency, MES Road, Madhapar, Bhuj, Gujarat</p>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* Upload Modal */}
+          {uploadModalOpen && (
+            <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-4 shadow-2xl">
+                <div className="flex justify-between items-center border-b pb-3">
+                  <h3 className="font-extrabold text-slate-900 text-base">Upload Meal Distribution Photos</h3>
+                  <button onClick={() => setUploadModalOpen(false)} className="text-slate-400 font-bold">✕</button>
+                </div>
+                <form onSubmit={handleSaveUpload} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Admin Passcode *</label>
+                    <input type="password" required placeholder="Enter vanshsolanki16" value={uploadForm.passcode} onChange={e => setUploadForm({...uploadForm, passcode: e.target.value})} className="w-full px-3 py-2 border rounded-xl text-sm font-mono" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Date *</label>
+                      <input type="date" required value={uploadForm.date} onChange={e => setUploadForm({...uploadForm, date: e.target.value})} className="w-full px-3 py-2 border rounded-xl text-sm" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Meals Served *</label>
+                      <input type="number" required min="1" value={uploadForm.meals} onChange={e => setUploadForm({...uploadForm, meals: e.target.value})} className="w-full px-3 py-2 border rounded-xl text-sm" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Location / Caption</label>
+                    <input type="text" placeholder="e.g. Madhapar Center, Bhuj" value={uploadForm.caption} onChange={e => setUploadForm({...uploadForm, caption: e.target.value})} className="w-full px-3 py-2 border rounded-xl text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Select Photos *</label>
+                    <input type="file" multiple accept="image/*" onChange={handleFileUpload} className="w-full text-xs" />
+                  </div>
+                  {uploadForm.files.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {uploadForm.files.map((f, i) => (
+                        <img key={i} src={f.url} className="w-full h-14 object-cover rounded-lg border" />
+                      ))}
+                    </div>
+                  )}
+                  <button type="submit" className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl text-xs">
+                    Authorize & Sync to Google Drive
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Volunteer Pass Modal */}
+          {successModalData && (
+            <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl text-center space-y-4">
+                <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+                  🙏
+                </div>
+                <h3 className="text-2xl font-black text-slate-900">Welcome, {successModalData.name}!</h3>
+                <p className="text-xs text-slate-600">Your registration has been forwarded to vansh.solanki58@gmail.com.</p>
+                <div className="bg-slate-900 text-white p-4 rounded-2xl text-left">
+                  <span className="text-[10px] uppercase text-amber-400 font-bold block">Om Foundation Volunteer Pass</span>
+                  <span className="font-mono text-sm font-bold">{successModalData.id}</span>
+                </div>
+                <button onClick={() => setSuccessModalData(null)} className="w-full py-3 bg-amber-500 text-white rounded-xl font-bold text-xs">
+                  Continue
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="bg-slate-900 text-slate-400 py-8 px-4 text-center text-xs border-t border-slate-800">
+            <p>© {new Date().getFullYear()} Om Foundation • Madhapar, Bhuj, Gujarat.</p>
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
