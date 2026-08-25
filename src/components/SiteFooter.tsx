@@ -74,9 +74,8 @@ export function SiteFooter() {
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Programs</h3>
             <ul className="mt-3 space-y-2 text-xs text-slate-600">
               <li>• Friday Meal (Women-led) – 6 PM</li>
-              <li>• Sunday Milk & Biscuit Breakfast – 8:30 AM</li>
-              <li>• Sunday Shibir (Bhuj WhatsApp)</li>
-              <li>• Female Only Shibir (WhatsApp Group)</li>
+              <li>• Sunday Breakfast (Milk & Biscuit) – 8:30 AM</li>
+              <li>• Shibir (Bhuj WhatsApp Group)</li>
             </ul>
           </div>
 

@@ -47,9 +47,8 @@ export const Footer: React.FC = () => {
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Programs</h4>
             <ul className="space-y-2 text-xs text-slate-600">
               <li>• Friday Meal (Women-led) – 6 PM</li>
-              <li>• Sunday Milk & Biscuit – 8:30 AM</li>
-              <li>• Sunday Shibir (Bhuj WhatsApp)</li>
-              <li>• Female Only Shibir</li>
+              <li>• Sunday Breakfast (Milk & Biscuit) – 8:30 AM</li>
+              <li>• Shibir (Bhuj WhatsApp Group)</li>
             </ul>
           </div>
 

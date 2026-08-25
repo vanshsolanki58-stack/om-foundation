@@ -389,7 +389,7 @@ export const HomePage: React.FC = () => {
                 🥛
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-amber-800 transition-colors">
-                Sunday Milk & Biscuit Breakfast
+                Sunday Breakfast (Milk & Biscuit)
               </h3>
               <span className="text-[11px] font-bold text-orange-700 block mb-2">Every Sunday, 8:30 AM Morning</span>
               <p className="text-xs text-slate-600 leading-relaxed">
@@ -412,7 +412,7 @@ export const HomePage: React.FC = () => {
                 ☀️
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-teal-800 transition-colors">
-                Sunday & Female Only Shibirs
+                Shibir
               </h3>
               <span className="text-[11px] font-bold text-teal-700 block mb-2">Dates via WhatsApp Group</span>
               <p className="text-xs text-slate-600 leading-relaxed">

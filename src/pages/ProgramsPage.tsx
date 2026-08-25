@@ -13,7 +13,7 @@ export function ProgramsPage() {
       badgeType: "regular",
     },
     {
-      title: "Sunday Milk & Biscuit Breakfast",
+      title: "Sunday Breakfast (Milk & Biscuit)",
       subtitle: "Morning Hunger Relief",
       desc: "Fresh, warm milk and nutritious biscuit breakfast distribution for children, daily-wage workers, and shelter residents across our morning distribution routes.",
       schedule: "Sunday, 8:30 AM Morning",
