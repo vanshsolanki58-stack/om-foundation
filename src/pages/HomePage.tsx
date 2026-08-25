@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Utensils, Users, Award, ArrowRight, CheckCircle2, Sparkles, Sun, Calendar } from 'lucide-react';
 import { galleryService } from '../lib/gallery-store';
 import { volunteerService } from '../lib/volunteer-store';
 
-interface HomePageProps {
-  onNavigate: (page: string) => void;
-}
-
-export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
+export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [totalMeals, setTotalMeals] = useState<number>(0);
   const [totalDrives, setTotalDrives] = useState<number>(0);
   const [volunteerCount, setVolunteerCount] = useState<number>(0);
@@ -101,20 +99,20 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <button
-              onClick={() => onNavigate('volunteer')}
+            <Link
+              to="/volunteer"
               className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-amber-200 transition-all flex items-center justify-center gap-2 group text-sm"
             >
               <span>Become a Volunteer</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button
-              onClick={() => onNavigate('gallery')}
+            </Link>
+            <Link
+              to="/gallery"
               className="w-full sm:w-auto px-7 py-4 bg-white hover:bg-slate-50 text-slate-800 font-semibold rounded-2xl border border-slate-200 shadow-2xs transition flex items-center justify-center gap-2 text-sm"
             >
               <Utensils className="w-4 h-4 text-amber-600" />
               <span>View Meal Calendar</span>
-            </button>
+            </Link>
           </div>
 
           {/* Trust Indicators */}
@@ -140,14 +138,27 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {/* Guruji Card */}
           <div className="bg-white rounded-3xl border border-amber-100/90 p-6 sm:p-8 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6">
-            {/* Portrait Frame */}
+            {/* Portrait Frame with <img> Tag */}
             <div className="aspect-[4/3] sm:h-80 w-full rounded-2xl bg-gradient-to-b from-[#f7f1e7] to-[#ede3d2] border border-amber-200/50 flex flex-col items-center justify-center relative overflow-hidden group">
-              <div className="w-24 h-24 rounded-full bg-amber-200/40 flex items-center justify-center text-amber-700/60 group-hover:scale-105 transition-transform duration-300">
-                <Sun className="w-12 h-12 stroke-[1.5]" />
+              <img
+                src="/src/assets/guruji.jpg"
+                alt="Guruji - Spiritual Guide & Mentor"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => {
+                  // If image not added yet, show peaceful icon fallback
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+              <div className="hidden flex-col items-center justify-center w-full h-full absolute inset-0">
+                <div className="w-24 h-24 rounded-full bg-amber-200/40 flex items-center justify-center text-amber-700/60 group-hover:scale-105 transition-transform duration-300">
+                  <Sun className="w-12 h-12 stroke-[1.5]" />
+                </div>
+                <span className="text-[11px] font-bold text-amber-800/60 uppercase tracking-widest mt-3">
+                  Spiritual Guide & Mentor
+                </span>
               </div>
-              <span className="text-[11px] font-bold text-amber-800/60 uppercase tracking-widest mt-3">
-                Spiritual Guide & Mentor
-              </span>
             </div>
 
             {/* Info */}
@@ -156,21 +167,34 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 Guruji
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                A brief biography will go here — his journey, his teachings, and the role he plays in guiding seekers through spiritual talks and personal problem-solving.
+                Spiritual guide and mentor rooted in ancient Vedic wisdom and meditation practices. His serene teachings focus on self-realization, inner chakra alignment, and practical problem-solving through personal spiritual talks.
               </p>
             </div>
           </div>
 
           {/* Guruma Card */}
           <div className="bg-white rounded-3xl border border-amber-100/90 p-6 sm:p-8 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-6">
-            {/* Portrait Frame */}
+            {/* Portrait Frame with <img> Tag */}
             <div className="aspect-[4/3] sm:h-80 w-full rounded-2xl bg-gradient-to-b from-[#f7f1e7] to-[#ede3d2] border border-amber-200/50 flex flex-col items-center justify-center relative overflow-hidden group">
-              <div className="w-24 h-24 rounded-full bg-orange-200/40 flex items-center justify-center text-orange-700/60 group-hover:scale-105 transition-transform duration-300">
-                <Sparkles className="w-12 h-12 stroke-[1.5]" />
+              <img
+                src="/src/assets/guruma.jpg"
+                alt="Guruma - Motherly Love & Seva"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => {
+                  // If image not added yet, show peaceful icon fallback
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+              <div className="hidden flex-col items-center justify-center w-full h-full absolute inset-0">
+                <div className="w-24 h-24 rounded-full bg-orange-200/40 flex items-center justify-center text-orange-700/60 group-hover:scale-105 transition-transform duration-300">
+                  <Sparkles className="w-12 h-12 stroke-[1.5]" />
+                </div>
+                <span className="text-[11px] font-bold text-orange-800/60 uppercase tracking-widest mt-3">
+                  Motherly Love & Seva
+                </span>
               </div>
-              <span className="text-[11px] font-bold text-orange-800/60 uppercase tracking-widest mt-3">
-                Motherly Love & Seva
-              </span>
             </div>
 
             {/* Info */}
@@ -179,7 +203,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 Guruma
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                A brief biography will go here — her devotion, her service to the community, and the nurturing energy she brings to every meal and shibir.
+                A beacon of motherly compassion, unconditional love, and dedicated service. She leads our sacred female-only shibirs and inspires community nourishment, infusing every meal drive and gathering with uplifting devotional energy.
               </p>
             </div>
           </div>
@@ -202,13 +226,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 Live statistics dynamically updated and synchronized with every photo-verified food drive.
               </p>
             </div>
-            <button
-              onClick={() => onNavigate('gallery')}
+            <Link
+              to="/gallery"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition self-start sm:self-auto shrink-0 border border-amber-200"
             >
               <Calendar className="w-4 h-4 text-amber-600" />
               View Distribution Records
-            </button>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -263,12 +287,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 border-t border-slate-100">
             <span>Center Location: <strong>SHRI STUTI, MES Road, Madhapar, Bhuj, Gujarat</strong></span>
-            <button
-              onClick={() => onNavigate('volunteer')}
+            <Link
+              to="/volunteer"
               className="text-amber-800 font-bold hover:underline flex items-center gap-1"
             >
               Join our seva family today <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </Link>
           </div>
         </div>
       </section>

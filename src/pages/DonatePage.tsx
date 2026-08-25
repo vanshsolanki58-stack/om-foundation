@@ -1,24 +1,61 @@
 import React, { useState } from "react";
-import { Heart, CheckCircle2, ShieldCheck, CreditCard, Sparkles } from "lucide-react";
+import { Heart, CheckCircle2, ShieldCheck, CreditCard, Sparkles, AlertCircle, Lock } from "lucide-react";
 import { notificationService } from "../lib/notifications";
+import { submitDonationPledge } from "../lib/supabase";
 
 export function DonatePage() {
   const [selectedAmount, setSelectedAmount] = useState<number>(1100);
   const [customAmount, setCustomAmount] = useState<string>("");
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [donorName, setDonorName] = useState<string>("");
+  const [donorEmail, setDonorEmail] = useState<string>("");
+  const [donorPhone, setDonorPhone] = useState<string>("");
+  const [panNumber, setPanNumber] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   const amounts = [500, 1100, 2500, 5100, 11000];
 
-  const handleDonate = (e: React.FormEvent) => {
+  const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     const finalAmount = customAmount ? Number(customAmount) : selectedAmount;
-    setIsSuccess(true);
-    notificationService.addNotification({
-      title: "Donation Pledge Received 🙏",
-      message: `Thank you for pledging ₹${finalAmount} towards Om Foundation meals! We will provide the tax exemption 80G receipt shortly.`,
-      category: "system",
-      priority: "high",
-    });
+    if (!finalAmount || finalAmount <= 0) {
+      setError("Please select or enter a valid donation amount.");
+      return;
+    }
+
+    if (!donorName.trim()) {
+      setError("Please enter your full name for the donation receipt.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Persist to Supabase Database
+      await submitDonationPledge({
+        amount: finalAmount,
+        donorName: donorName.trim(),
+        donorEmail: donorEmail.trim() || undefined,
+        donorPhone: donorPhone.trim() || undefined,
+        panNumber: panNumber.trim() || undefined,
+      });
+
+      setIsSuccess(true);
+
+      notificationService.addNotification({
+        title: "Donation Pledge Recorded 🙏",
+        message: `Thank you ${donorName}! Your contribution of ₹${finalAmount.toLocaleString()} has been recorded. Digital receipt & 80G certificate will be processed shortly.`,
+        category: "system",
+        priority: "high",
+      });
+    } catch (err: any) {
+      setError(err.message || "Failed to record donation pledge. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,6 +71,13 @@ export function DonatePage() {
       </div>
 
       <div className="bg-white rounded-3xl border border-amber-100 p-6 sm:p-10 shadow-xl max-w-2xl mx-auto">
+        {error && (
+          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3 text-red-700 text-xs sm:text-sm">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
         {isSuccess ? (
           <div className="text-center py-8 space-y-4">
             <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-3xl">
@@ -41,11 +85,18 @@ export function DonatePage() {
             </div>
             <h3 className="text-2xl font-bold text-slate-900">Dhanyawaad for Your Generosity!</h3>
             <p className="text-xs text-slate-600 max-w-md mx-auto">
-              Your pledge has been registered. You will receive an official digital receipt along with AI audit photos of the meals served through your sponsorship.
+              Your pledge of ₹{(customAmount ? Number(customAmount) : selectedAmount).toLocaleString()} has been securely recorded. You will receive an official digital receipt along with photo records of meals served.
             </p>
             <button
-              onClick={() => setIsSuccess(false)}
-              className="px-6 py-2.5 bg-amber-500 text-white text-xs font-bold rounded-xl"
+              onClick={() => {
+                setIsSuccess(false);
+                setDonorName("");
+                setDonorEmail("");
+                setDonorPhone("");
+                setPanNumber("");
+                setCustomAmount("");
+              }}
+              className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition shadow-xs"
             >
               Make another pledge
             </button>
@@ -79,11 +130,55 @@ export function DonatePage() {
               <label className="block text-xs font-bold text-slate-800 mb-1.5">Or Custom Amount (₹)</label>
               <input
                 type="number"
+                min="1"
                 placeholder="Enter custom amount"
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-amber-500 outline-none"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none"
               />
+            </div>
+
+            {/* Donor Information */}
+            <div className="space-y-3.5 pt-2 border-t border-slate-100">
+              <span className="text-xs font-bold text-slate-800 block">Donor Details for Receipt</span>
+              
+              <div>
+                <input
+                  type="text"
+                  required
+                  placeholder="Full Name / Trust Name *"
+                  value={donorName}
+                  onChange={(e) => setDonorName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  type="tel"
+                  placeholder="Phone / WhatsApp"
+                  value={donorPhone}
+                  onChange={(e) => setDonorPhone(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none"
+                />
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={donorEmail}
+                  onChange={(e) => setDonorEmail(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none"
+                />
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  placeholder="PAN Card (Optional, for 80G Tax Exemption)"
+                  value={panNumber}
+                  onChange={(e) => setPanNumber(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none uppercase"
+                />
+              </div>
             </div>
 
             {/* Impact Calculation */}
@@ -99,10 +194,20 @@ export function DonatePage() {
 
             <button
               type="submit"
-              className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2 disabled:opacity-70"
             >
-              <Heart className="w-4 h-4 fill-white/20" />
-              Complete Sacred Donation
+              {loading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Recording Sacred Pledge...
+                </>
+              ) : (
+                <>
+                  <Heart className="w-4 h-4 fill-white/20" />
+                  Complete Sacred Contribution
+                </>
+              )}
             </button>
 
             <div className="flex items-center justify-center gap-4 text-[11px] text-slate-400 font-medium">
@@ -111,7 +216,7 @@ export function DonatePage() {
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Verified AI Audit
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Photo-Verified Food Drives
               </span>
             </div>
           </form>

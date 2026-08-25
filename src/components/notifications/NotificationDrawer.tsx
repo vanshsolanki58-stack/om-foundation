@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Check, Bell, Calendar, Users, Info, AlertTriangle, ExternalLink } from 'lucide-react';
 import { notificationService } from '../../lib/notifications';
 import { AppNotification, NotificationCategory } from '../../types/notification';
@@ -7,14 +8,13 @@ import { formatDate } from '../../lib/utils';
 interface NotificationDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigate?: (page: string) => void;
 }
 
 export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
   isOpen,
   onClose,
-  onNavigate,
 }) => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<NotificationCategory>('all');
 
@@ -39,9 +39,8 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
   const handleNotificationClick = (n: AppNotification) => {
     notificationService.markAsRead(n.id);
-    if (n.actionUrl && onNavigate) {
-      const page = n.actionUrl.replace('/', '') || 'home';
-      onNavigate(page);
+    if (n.actionUrl) {
+      navigate(n.actionUrl);
       onClose();
     }
   };

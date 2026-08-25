@@ -1,11 +1,8 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Utensils, Heart, Sparkles, Sun, Users, Calendar, ArrowRight, MessageCircle } from "lucide-react";
 
-interface ProgramsPageProps {
-  onNavigate: (page: string) => void;
-}
-
-export function ProgramsPage({ onNavigate }: ProgramsPageProps) {
+export function ProgramsPage() {
   const programs = [
     {
       title: "Friday Meal (Women-led)",
@@ -81,18 +78,18 @@ export function ProgramsPage({ onNavigate }: ProgramsPageProps) {
             </div>
 
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-              <button
-                onClick={() => onNavigate("volunteer")}
+              <Link
+                to="/volunteer"
                 className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1"
               >
                 Volunteer For This Program <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => onNavigate("donate")}
+              </Link>
+              <Link
+                to="/donate"
                 className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-xs"
               >
                 Sponsor Seva
-              </button>
+              </Link>
             </div>
           </div>
         ))}

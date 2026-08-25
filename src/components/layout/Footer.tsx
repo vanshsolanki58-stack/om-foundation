@@ -1,110 +1,78 @@
 import React from 'react';
-import { Heart, MapPin, Mail, Phone, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Heart, Mail, Phone, MapPin, Sparkles } from 'lucide-react';
 
-interface FooterProps {
-  onNavigate: (page: string) => void;
-}
-
-export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+export const Footer: React.FC = () => {
   return (
-    <footer className="bg-slate-900 text-slate-300 border-t border-slate-800">
+    <footer className="bg-white border-t border-slate-200 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Col 1: About */}
-          <div className="space-y-4 md:col-span-2">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold">
-                <Heart className="w-4 h-4 fill-white" />
+          {/* Brand */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-xs">
+                <Heart className="w-5 h-5 fill-white/20 stroke-[2.5]" />
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">Om Foundation</span>
+              <span className="font-extrabold text-lg text-slate-900 tracking-tight">Om Foundation</span>
             </div>
-            <p className="text-sm text-slate-400 max-w-md leading-relaxed">
-              Om Foundation is a non-profit initiative dedicated to fighting hunger, providing wholesome daily meals, and fostering dignity across underserved communities.
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Serving the community in Bhuj with nourishing meals, spiritual retreats, and dedicated volunteer care.
             </p>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <span className="px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-emerald-400 font-medium">
-                Registered Non-Profit NGO
-              </span>
-              <span>•</span>
-              <span>100% Volunteer Driven</span>
-            </div>
           </div>
 
-          {/* Col 2: Quick Links */}
+          {/* Quick links */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
-              Quick Links
-            </h4>
-            <ul className="space-y-2.5 text-sm">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Explore</h4>
+            <ul className="space-y-2 text-xs text-slate-600">
               <li>
-                <button
-                  onClick={() => onNavigate('home')}
-                  className="hover:text-white transition"
-                >
-                  Home & Impact
-                </button>
+                <Link to="/" className="hover:text-amber-700 transition">Home</Link>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigate('volunteer')}
-                  className="hover:text-emerald-400 text-emerald-300 font-medium transition"
-                >
-                  Volunteer Sign Up
-                </button>
+                <Link to="/volunteer" className="hover:text-amber-700 transition">Volunteer With Us</Link>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigate('gallery')}
-                  className="hover:text-white transition"
-                >
-                  Meal Distribution Gallery
-                </button>
+                <Link to="/gallery" className="hover:text-amber-700 transition">Meal Gallery</Link>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigate('about')}
-                  className="hover:text-white transition"
-                >
-                  Our Mission
-                </button>
+                <Link to="/about" className="hover:text-amber-700 transition">About Our Mission</Link>
               </li>
               <li>
-                <button
-                  onClick={() => onNavigate('contact')}
-                  className="hover:text-white transition"
-                >
-                  Contact & Support
-                </button>
+                <Link to="/contact" className="hover:text-amber-700 transition">Contact & Support</Link>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Contact Details */}
+          {/* Service Hours */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
-              Get in Touch
-            </h4>
-            <ul className="space-y-3 text-sm text-slate-400">
-              <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                <span>Sector 14 & 31, Gurugram / Delhi NCR, India</span>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Programs</h4>
+            <ul className="space-y-2 text-xs text-slate-600">
+              <li>• Friday Meal (Women-led) – 6 PM</li>
+              <li>• Sunday Milk & Biscuit – 8:30 AM</li>
+              <li>• Sunday Shibir (Bhuj WhatsApp)</li>
+              <li>• Female Only Shibir</li>
+            </ul>
+          </div>
+
+          {/* Contact info */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Location</h4>
+            <ul className="space-y-2.5 text-xs text-slate-600">
+              <li className="flex items-start gap-2">
+                <MapPin className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>Madhapar, Bhuj, Gujarat, India</span>
               </li>
-              <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-emerald-500 shrink-0" />
+              <li className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>contact@omfoundation.org</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>+91 98765 43210</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="pt-8 mt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} Om Foundation. All rights reserved.</p>
-          <p className="flex items-center gap-1">
-            Built with care for a hunger-free tomorrow.
+          <p className="flex items-center gap-1 text-slate-400 font-serif">
+            तेज से तेजोमय • Dedicated to Seva
           </p>
         </div>
       </div>

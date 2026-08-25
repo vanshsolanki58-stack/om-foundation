@@ -1,11 +1,8 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Sun, MapPin, Phone, Mail, Heart } from "lucide-react";
 
-interface SiteFooterProps {
-  onNavigate: (page: string) => void;
-}
-
-export function SiteFooter({ onNavigate }: SiteFooterProps) {
+export function SiteFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -14,8 +11,8 @@ export function SiteFooter({ onNavigate }: SiteFooterProps) {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Col 1 */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-xs shrink-0">
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-xs shrink-0 group-hover:scale-105 transition-transform">
                 <Sun className="w-4 h-4" />
               </div>
               <div>
@@ -26,7 +23,7 @@ export function SiteFooter({ onNavigate }: SiteFooterProps) {
                   ॐ चैरीटेबल ट्रस्ट
                 </span>
               </div>
-            </div>
+            </Link>
             <p className="text-xs text-amber-800 font-bold tracking-wide font-serif">
               तेज से तेजोमय
             </p>
@@ -40,34 +37,34 @@ export function SiteFooter({ onNavigate }: SiteFooterProps) {
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Quick Links</h3>
             <ul className="mt-3 space-y-2 text-xs">
               <li>
-                <button onClick={() => onNavigate("about")} className="text-slate-600 hover:text-amber-700 transition">
+                <Link to="/about" className="text-slate-600 hover:text-amber-700 transition">
                   About Us
-                </button>
+                </Link>
               </li>
               <li>
-                <button onClick={() => onNavigate("programs")} className="text-slate-600 hover:text-amber-700 transition">
+                <Link to="/programs" className="text-slate-600 hover:text-amber-700 transition">
                   Our Programs
-                </button>
+                </Link>
               </li>
               <li>
-                <button onClick={() => onNavigate("gallery")} className="text-slate-600 hover:text-amber-700 transition">
+                <Link to="/gallery" className="text-slate-600 hover:text-amber-700 transition">
                   Meal Distribution Calendar
-                </button>
+                </Link>
               </li>
               <li>
-                <button onClick={() => onNavigate("volunteer")} className="text-amber-700 font-semibold hover:underline transition">
+                <Link to="/volunteer" className="text-amber-700 font-semibold hover:underline transition">
                   Volunteer Sign Up
-                </button>
+                </Link>
               </li>
               <li>
-                <button onClick={() => onNavigate("donate")} className="text-slate-600 hover:text-amber-700 transition">
+                <Link to="/donate" className="text-slate-600 hover:text-amber-700 transition">
                   Donate & Sponsor
-                </button>
+                </Link>
               </li>
               <li>
-                <button onClick={() => onNavigate("faq")} className="text-slate-600 hover:text-amber-700 transition">
+                <Link to="/faq" className="text-slate-600 hover:text-amber-700 transition">
                   FAQ
-                </button>
+                </Link>
               </li>
             </ul>
           </div>

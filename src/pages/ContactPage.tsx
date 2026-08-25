@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle2, MessageSquare, AlertCircle } from 'lucide-react';
 import { notificationService } from '../lib/notifications';
+import { submitContactInquiry } from '../lib/supabase';
 
 export const ContactPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -12,23 +13,51 @@ export const ContactPage: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // Simulate submission delay
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    setError(null);
 
-    notificationService.addNotification({
-      title: 'Inquiry Received',
-      message: `Thank you ${formData.name}! Your message regarding "${formData.subject}" has been received by our support team.`,
-      category: 'system',
-      priority: 'medium',
-    });
+    if (!formData.name.trim()) {
+      setError('Please enter your name.');
+      return;
+    }
+    if (!formData.email.trim() || !formData.email.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (!formData.message.trim()) {
+      setError('Please enter your message.');
+      return;
+    }
 
-    setSubmitted(true);
-    setLoading(false);
+    try {
+      setLoading(true);
+
+      // Persist to Supabase Database
+      await submitContactInquiry({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim() || undefined,
+        subject: formData.subject,
+        message: formData.message.trim(),
+      });
+
+      notificationService.addNotification({
+        title: 'Inquiry Received 🙏',
+        message: `Thank you ${formData.name}! Your message regarding "${formData.subject}" has been received by our seva coordination team.`,
+        category: 'system',
+        priority: 'medium',
+      });
+
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to send your message. Please check your internet connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,21 +78,21 @@ export const ContactPage: React.FC = () => {
             <h3 className="text-base font-bold text-slate-900">Reach Us Directly</h3>
             <div className="space-y-3 text-sm text-slate-600">
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <MapPin className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-slate-900 text-xs">Headquarters & Kitchen</p>
-                  <p className="text-xs">Om Foundation Hub, Sector 14, Gurugram, Haryana 122001</p>
+                  <p className="font-semibold text-slate-900 text-xs">Headquarters & Seva Center</p>
+                  <p className="text-xs">SHRI STUTI, Plot No - 351/4, Hillview Residency, MES Road, Madhapar, Bhuj, Gujarat, India</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Mail className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <Mail className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-slate-900 text-xs">Email</p>
-                  <p className="text-xs">contact@omfoundation.org</p>
+                  <p className="text-xs">info@omfoundation.org</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Phone className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <Phone className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-slate-900 text-xs">Volunteer Helpline</p>
                   <p className="text-xs">+91 98765 43210 (10 AM - 6 PM)</p>
@@ -72,10 +101,10 @@ export const ContactPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100 space-y-2">
-            <h4 className="text-sm font-bold text-emerald-950">Looking to Sponsor a Drive?</h4>
-            <p className="text-xs text-emerald-800 leading-relaxed">
-              We organize dedicated birthday, anniversary, and corporate sponsored meal distribution drives with full video and photographic documentation.
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-2xl border border-amber-100 space-y-2">
+            <h4 className="text-sm font-bold text-amber-950">Looking to Sponsor a Drive?</h4>
+            <p className="text-xs text-amber-800 leading-relaxed">
+              We organize dedicated birthday, anniversary, and family sponsored meal distribution drives with full video and photographic documentation.
             </p>
           </div>
         </div>
@@ -83,6 +112,13 @@ export const ContactPage: React.FC = () => {
         {/* Contact Form */}
         <div className="lg:col-span-7">
           <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+            {error && (
+              <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3 text-red-700 text-xs sm:text-sm">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
             {submitted ? (
               <div className="text-center py-10 space-y-3">
                 <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
@@ -105,37 +141,43 @@ export const ContactPage: React.FC = () => {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Your Name *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Your Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     required
+                    placeholder="e.g. Ramesh Patel"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g. Priya Sharma"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-emerald-600 outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="email"
                       required
+                      placeholder="ramesh@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="priya@example.com"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-emerald-600 outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">Phone (Optional)</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Phone Number (Optional)
+                    </label>
                     <input
                       type="tel"
+                      placeholder="9876543210"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="9876543210"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-emerald-600 outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm"
                     />
                   </div>
                 </div>
@@ -145,35 +187,43 @@ export const ContactPage: React.FC = () => {
                   <select
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:border-emerald-600 outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm bg-white"
                   >
                     <option value="General Inquiry">General Inquiry</option>
+                    <option value="Sponsoring a Meal Drive">Sponsoring a Meal Drive</option>
                     <option value="Volunteer Coordination">Volunteer Coordination</option>
-                    <option value="Meal Drive Sponsorship">Meal Drive Sponsorship</option>
-                    <option value="Media & Press">Media & Press</option>
+                    <option value="CSR & Corporate Partnership">CSR & Corporate Partnership</option>
+                    <option value="Shibir Inquiries">Shibir & Sadhana Inquiries</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Message *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Your Message <span className="text-red-500">*</span>
+                  </label>
                   <textarea
-                    rows={4}
                     required
+                    rows={4}
+                    placeholder="Tell us how you would like to connect or how we can help..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="How can we help you?"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-emerald-600 outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-sm"
+                  className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm disabled:opacity-70"
                 >
-                  {loading ? 'Sending...' : (
+                  {loading ? (
                     <>
-                      <Send className="w-3.5 h-3.5" />
+                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Sending Message...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
                       Send Message
                     </>
                   )}

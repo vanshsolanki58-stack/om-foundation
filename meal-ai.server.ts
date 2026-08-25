@@ -1,3 +1,5 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 type PhotoInput = { fileName: string; contentType: string; dataBase64: string };
 
 export type PhotoReview = {
@@ -34,39 +36,47 @@ function normalizeSignature(description: string) {
 }
 
 export async function reviewPhoto(photo: PhotoInput): Promise<PhotoReview> {
-  const key = process.env["LOVABLE_API_KEY"];
-  if (!key) throw new Error("Photo review is not configured.");
-
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-3.6-flash",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: "Review this meal distribution photo." },
-            {
-              type: "image_url",
-              image_url: { url: `data:${photo.contentType};base64,${photo.dataBase64}` },
-            },
-          ],
-        },
-      ],
-    }),
-  });
-
-  if (!res.ok) {
-    const status = res.status;
-    if (status === 429) throw new Error("Photo review is rate limited. Please try again shortly.");
-    if (status === 402) throw new Error("Photo review credits are exhausted.");
-    throw new Error("Photo review failed. Please try again.");
+  const apiKey = process.env["GEMINI_API_KEY"] || process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("Gemini API key is not configured. Please set the GEMINI_API_KEY environment variable.");
   }
 
-  const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-  const raw = json.choices?.[0]?.message?.content ?? "";
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    systemInstruction: SYSTEM_PROMPT,
+    generationConfig: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  let raw = "";
+  try {
+    const result = await model.generateContent([
+      {
+        text: "Review this meal distribution photo.",
+      },
+      {
+        inlineData: {
+          mimeType: photo.contentType || "image/jpeg",
+          data: photo.dataBase64,
+        },
+      },
+    ]);
+
+    raw = result.response.text();
+  } catch (err: any) {
+    const errMsg = String(err?.message || err);
+    if (err?.status === 429 || errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("429") || errMsg.includes("quota")) {
+      throw new Error("Photo review rate limit or quota exceeded. Please try again in a few moments.");
+    }
+    if (err?.status === 400 || errMsg.includes("API_KEY_INVALID") || errMsg.includes("API key not valid")) {
+      throw new Error("Invalid Gemini API key. Please check your GEMINI_API_KEY configuration.");
+    }
+    throw new Error(`Photo review failed: ${err.message || "Unknown error during AI review."}`);
+  }
+
   const cleaned = raw.replace(/```json/gi, "").replace(/```/g, "").trim();
   let parsed: {
     is_original?: boolean;
@@ -74,8 +84,14 @@ export async function reviewPhoto(photo: PhotoInput): Promise<PhotoReview> {
     reason?: string;
     recipients?: { description?: string }[];
   };
+
   try {
-    parsed = JSON.parse(cleaned.slice(cleaned.indexOf("{"), cleaned.lastIndexOf("}") + 1));
+    const startIdx = cleaned.indexOf("{");
+    const endIdx = cleaned.lastIndexOf("}");
+    if (startIdx === -1 || endIdx === -1) {
+      throw new Error("No JSON object found");
+    }
+    parsed = JSON.parse(cleaned.slice(startIdx, endIdx + 1));
   } catch {
     throw new Error("Photo review returned an unreadable result. Please try again.");
   }
@@ -104,6 +120,8 @@ export async function reviewPhoto(photo: PhotoInput): Promise<PhotoReview> {
 
 export async function reviewPhotos(photos: PhotoInput[]) {
   const out: PhotoReview[] = [];
-  for (const photo of photos) out.push(await reviewPhoto(photo));
+  for (const photo of photos) {
+    out.push(await reviewPhoto(photo));
+  }
   return out;
 }

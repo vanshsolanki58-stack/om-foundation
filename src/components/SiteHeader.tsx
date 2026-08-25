@@ -1,31 +1,29 @@
 import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, Heart, Bell, Sun } from "lucide-react";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { NotificationDrawer } from "./notifications/NotificationDrawer";
 
 const navLinks = [
-  { to: "home", label: "Home" },
-  { to: "about", label: "About" },
-  { to: "programs", label: "Programs" },
-  { to: "gallery", label: "Meal Calendar" },
-  { to: "donate", label: "Donate" },
-  { to: "volunteer", label: "Volunteer" },
-  { to: "contact", label: "Contact" },
-  { to: "faq", label: "FAQ" },
+  { path: "/", label: "Home" },
+  { path: "/about", label: "About" },
+  { path: "/programs", label: "Programs" },
+  { path: "/gallery", label: "Meal Calendar" },
+  { path: "/donate", label: "Donate" },
+  { path: "/volunteer", label: "Volunteer" },
+  { path: "/contact", label: "Contact" },
+  { path: "/faq", label: "FAQ" },
 ];
 
-interface SiteHeaderProps {
-  currentPage: string;
-  onNavigate: (page: string) => void;
-}
-
-export function SiteHeader({ currentPage, onNavigate }: SiteHeaderProps) {
+export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const handleLinkClick = (page: string) => {
-    onNavigate(page);
-    setMobileOpen(false);
+  const isCurrentActive = (path: string) => {
+    if (path === "/") return location.pathname === "/" || location.pathname === "";
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -33,8 +31,9 @@ export function SiteHeader({ currentPage, onNavigate }: SiteHeaderProps) {
       <header className="sticky top-0 z-50 border-b border-amber-200/60 bg-white/95 backdrop-blur-md shadow-xs">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           {/* Clean Logo */}
-          <div
-            onClick={() => handleLinkClick("home")}
+          <Link
+            to="/"
+            onClick={() => setMobileOpen(false)}
             className="flex items-center gap-2.5 cursor-pointer group"
           >
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
@@ -48,16 +47,16 @@ export function SiteHeader({ currentPage, onNavigate }: SiteHeaderProps) {
                 Madhapar, Bhuj
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden items-center gap-1 lg:gap-1.5 md:flex">
             {navLinks.map((link) => {
-              const active = currentPage === link.to;
+              const active = isCurrentActive(link.path);
               return (
-                <button
-                  key={link.to}
-                  onClick={() => handleLinkClick(link.to)}
+                <Link
+                  key={link.path}
+                  to={link.path}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     active
                       ? "text-amber-800 bg-amber-50/90"
@@ -65,7 +64,7 @@ export function SiteHeader({ currentPage, onNavigate }: SiteHeaderProps) {
                   }`}
                 >
                   {link.label}
-                </button>
+                </Link>
               );
             })}
           </nav>
@@ -74,13 +73,13 @@ export function SiteHeader({ currentPage, onNavigate }: SiteHeaderProps) {
           <div className="flex items-center gap-2.5">
             <NotificationBell onClick={() => setNotificationOpen(true)} />
 
-            <button
-              onClick={() => handleLinkClick("donate")}
+            <Link
+              to="/donate"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:shadow-md"
             >
               <Heart className="w-3.5 h-3.5 fill-white/20" />
               Donate
-            </button>
+            </Link>
 
             <button
               type="button"
@@ -98,24 +97,26 @@ export function SiteHeader({ currentPage, onNavigate }: SiteHeaderProps) {
           <div className="border-t border-amber-100 bg-white/95 px-4 py-4 md:hidden shadow-lg space-y-1">
             <nav className="flex flex-col gap-1">
               {navLinks.map((link) => (
-                <button
-                  key={link.to}
-                  onClick={() => handleLinkClick(link.to)}
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMobileOpen(false)}
                   className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === link.to
+                    isCurrentActive(link.path)
                       ? "bg-amber-50 text-amber-800 font-bold"
                       : "text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {link.label}
-                </button>
+                </Link>
               ))}
-              <button
-                onClick={() => handleLinkClick("donate")}
-                className="mt-2 w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-2.5 text-center text-xs font-bold text-white shadow-sm"
+              <Link
+                to="/donate"
+                onClick={() => setMobileOpen(false)}
+                className="mt-2 w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-2.5 text-center text-xs font-bold text-white shadow-sm block"
               >
                 Donate Now
-              </button>
+              </Link>
             </nav>
           </div>
         )}
@@ -125,7 +126,6 @@ export function SiteHeader({ currentPage, onNavigate }: SiteHeaderProps) {
       <NotificationDrawer
         isOpen={notificationOpen}
         onClose={() => setNotificationOpen(false)}
-        onNavigate={onNavigate}
       />
     </>
   );

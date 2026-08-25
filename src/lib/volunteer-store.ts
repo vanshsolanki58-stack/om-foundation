@@ -1,4 +1,5 @@
 import { VolunteerFormData } from '../types/volunteer';
+import { supabase, isSupabaseConfigured, submitVolunteerApplication } from './supabase';
 
 const VOLUNTEER_STORAGE_KEY = 'om_foundation_registered_volunteers';
 
@@ -14,16 +15,10 @@ class VolunteerService {
 
   constructor() {
     this.loadInitial();
-    // Poll for real-time synchronization across all devices
-    if (typeof window !== 'undefined') {
-      setInterval(() => {
-        this.fetchFromServer();
-      }, 4000);
-    }
   }
 
   private async loadInitial() {
-    // 1. Load from localStorage cache first
+    // 1. Load from localStorage cache for instant UI rendering
     try {
       const stored = localStorage.getItem(VOLUNTEER_STORAGE_KEY);
       if (stored) {
@@ -31,32 +26,47 @@ class VolunteerService {
         this.notifyListeners(this.volunteers.length);
       }
     } catch (e) {
-      console.error('Error reading localStorage', e);
+      console.error('Error reading volunteer localStorage', e);
     }
 
-    // 2. Fetch latest from shared backend server
-    await this.fetchFromServer();
+    // 2. Fetch latest volunteer count from Supabase (Single Source of Truth)
+    await this.fetchFromDatabase();
   }
 
-  private async fetchFromServer() {
+  private async fetchFromDatabase() {
+    if (!isSupabaseConfigured) return;
+
     try {
-      const res = await fetch('/api/volunteers');
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          const countChanged = this.volunteers.length !== data.length;
-          this.volunteers = data;
-          try {
-            localStorage.setItem(VOLUNTEER_STORAGE_KEY, JSON.stringify(data));
-          } catch (e) {}
-          if (countChanged || !this.initialized) {
-            this.initialized = true;
-            this.notifyListeners(this.volunteers.length);
-          }
-        }
+      const { data, count, error } = await supabase
+        .from('volunteer_submissions')
+        .select('*', { count: 'exact' });
+
+      if (!error && data) {
+        const formatted: RegisteredVolunteer[] = data.map((item: any) => ({
+          fullName: item.name || '',
+          email: item.email || '',
+          phone: item.phone || '',
+          city: item.city || 'Bhuj, Gujarat',
+          ageGroup: '18-25',
+          roles: item.interest ? item.interest.split(', ') : ['meal_distribution'],
+          availability: Array.isArray(item.availability) ? item.availability : ['Weekends'],
+          preferredShift: item.preferred_shift || 'Morning',
+          emergencyReliefOptIn: Boolean(item.emergency_relief),
+          priorExperience: item.prior_experience || '',
+          message: item.message || '',
+          id: item.id || `VOL-${Math.random().toString(36).substring(2, 7)}`,
+          registeredAt: item.created_at || new Date().toISOString(),
+        }));
+
+        this.volunteers = formatted;
+        try {
+          localStorage.setItem(VOLUNTEER_STORAGE_KEY, JSON.stringify(formatted));
+        } catch (e) {}
+        this.notifyListeners(this.volunteers.length);
       }
     } catch (e) {
-      // Backend unavailable, continue with local cache
+      // Offline / Network error - maintain cached count
+      console.warn('Could not sync volunteers with Supabase, using local cache.', e);
     }
   }
 
@@ -69,33 +79,23 @@ class VolunteerService {
   }
 
   public async registerVolunteer(data: VolunteerFormData): Promise<{ id: string; success: boolean }> {
-    const volunteerId = `OM-VOL-${Math.floor(100000 + Math.random() * 900000)}`;
+    // 1. Submit to Supabase as single source of truth
+    const result = await submitVolunteerApplication(data);
 
     const newVolunteer: RegisteredVolunteer = {
       ...data,
-      id: volunteerId,
+      id: result.volunteerId,
       registeredAt: new Date().toISOString(),
     };
 
-    // Optimistic local update
+    // 2. Update local state & storage
     this.volunteers = [newVolunteer, ...this.volunteers];
     try {
       localStorage.setItem(VOLUNTEER_STORAGE_KEY, JSON.stringify(this.volunteers));
     } catch (e) {}
     this.notifyListeners(this.volunteers.length);
 
-    // Sync with shared server API
-    try {
-      await fetch('/api/volunteers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newVolunteer),
-      });
-    } catch (e) {
-      console.error('Failed to sync volunteer with server', e);
-    }
-
-    return { id: volunteerId, success: true };
+    return { id: result.volunteerId, success: true };
   }
 
   public subscribe(listener: (count: number) => void): () => void {
