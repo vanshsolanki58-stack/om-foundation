@@ -356,38 +356,74 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-xs hover:shadow-md transition">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold mb-4 text-2xl">
-              🍲
+          {/* Program Card 1 */}
+          <Link
+            to="/programs"
+            className="bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-xs hover:shadow-lg hover:border-amber-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold mb-4 text-2xl group-hover:scale-110 transition-transform">
+                🍲
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-amber-800 transition-colors">
+                Friday Meal (Women-led)
+              </h3>
+              <span className="text-[11px] font-bold text-amber-700 block mb-2">Every Friday, 6:00 PM Evening</span>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Wholesome dinner prepared and served by our women volunteers to elderly citizens and families in need.
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-1">Friday Meal (Women-led)</h3>
-            <span className="text-[11px] font-bold text-amber-700 block mb-2">Every Friday, 6:00 PM Evening</span>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Wholesome dinner prepared and served by our women volunteers to elderly citizens and families in need.
-            </p>
-          </div>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-amber-700 group-hover:text-amber-800">
+              <span>View Program Details</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+            </div>
+          </Link>
 
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-xs hover:shadow-md transition">
-            <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-800 flex items-center justify-center font-bold mb-4 text-2xl">
-              🥛
+          {/* Program Card 2 */}
+          <Link
+            to="/programs"
+            className="bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-xs hover:shadow-lg hover:border-amber-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-800 flex items-center justify-center font-bold mb-4 text-2xl group-hover:scale-110 transition-transform">
+                🥛
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-amber-800 transition-colors">
+                Sunday Milk & Biscuit Breakfast
+              </h3>
+              <span className="text-[11px] font-bold text-orange-700 block mb-2">Every Sunday, 8:30 AM Morning</span>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Warm milk and healthy biscuit breakfast distribution for children, laborers, and shelter residents.
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-1">Sunday Milk & Biscuit Breakfast</h3>
-            <span className="text-[11px] font-bold text-orange-700 block mb-2">Every Sunday, 8:30 AM Morning</span>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Warm milk and healthy biscuit breakfast distribution for children, laborers, and shelter residents.
-            </p>
-          </div>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-orange-700 group-hover:text-orange-800">
+              <span>View Program Details</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+            </div>
+          </Link>
 
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-xs hover:shadow-md transition">
-            <div className="w-12 h-12 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold mb-4 text-2xl">
-              ☀️
+          {/* Program Card 3 */}
+          <Link
+            to="/programs"
+            className="bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-xs hover:shadow-lg hover:border-amber-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
+          >
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center font-bold mb-4 text-2xl group-hover:scale-110 transition-transform">
+                ☀️
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-teal-800 transition-colors">
+                Sunday & Female Only Shibirs
+              </h3>
+              <span className="text-[11px] font-bold text-teal-700 block mb-2">Dates via WhatsApp Group</span>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Spiritual chanting, meditation, and inner peace retreats held at our Madhapar center.
+              </p>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-1">Sunday & Female Only Shibirs</h3>
-            <span className="text-[11px] font-bold text-teal-700 block mb-2">Dates via WhatsApp Group</span>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Spiritual chanting, meditation, and inner peace retreats held at our Madhapar center.
-            </p>
-          </div>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-teal-700 group-hover:text-teal-800">
+              <span>View Program Details</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+            </div>
+          </Link>
         </div>
       </section>
     </div>
