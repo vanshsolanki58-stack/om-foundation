@@ -185,7 +185,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
                 <input
                   type={showPasscode ? "text" : "password"}
                   required
-                  placeholder="Enter admin password (vanshsolanki16)"
+                  placeholder="Enter admin password"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
                   className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-200 bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm font-mono tracking-wider"
