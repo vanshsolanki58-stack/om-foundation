@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SiteHeader } from "./components/SiteHeader";
 import { SiteFooter } from "./components/SiteFooter";
 import { CosmicBackground } from "./components/CosmicBackground";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { HomePage } from "./pages/HomePage";
 import { VolunteerPage } from "./pages/VolunteerPage";
 import { GalleryPage } from "./pages/GalleryPage";
@@ -15,6 +16,7 @@ import { FaqPage } from "./pages/FaqPage";
 export const App: React.FC = () => {
   return (
     <HashRouter>
+      <ScrollToTop />
       <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 relative">
         <CosmicBackground />
         <SiteHeader />
