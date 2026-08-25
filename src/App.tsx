@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SiteHeader } from "./components/SiteHeader";
 import { SiteFooter } from "./components/SiteFooter";
 import { CosmicBackground } from "./components/CosmicBackground";
@@ -13,10 +13,8 @@ import { DonatePage } from "./pages/DonatePage";
 import { FaqPage } from "./pages/FaqPage";
 
 export const App: React.FC = () => {
-  const basename = (import.meta as any).env?.BASE_URL || "/";
-
   return (
-    <BrowserRouter basename={basename}>
+    <HashRouter>
       <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 relative">
         <CosmicBackground />
         <SiteHeader />
@@ -35,7 +33,7 @@ export const App: React.FC = () => {
         </main>
         <SiteFooter />
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
