@@ -1,22 +1,62 @@
 import React, { useState } from 'react';
 import { RoleSelector } from './RoleSelector';
-import { VolunteerFormData } from '../../types/volunteer';
+import { VolunteerFormData, VolunteerRole } from '../../types/volunteer';
 import { volunteerService } from '../../lib/volunteer-store';
 import { sendVolunteerRegistrationEmail } from '../../lib/email-service';
 import { notificationService } from '../../lib/notifications';
 import { VolunteerSuccessModal } from './VolunteerSuccessModal';
-import { Heart, Send, AlertCircle, Clock, ShieldAlert, Sparkles, Mail } from 'lucide-react';
+import { Heart, Send, AlertCircle, Sparkles, Mail, MapPin, ShieldAlert } from 'lucide-react';
+
+const GUJARAT_CITIES = [
+  // Kutch Region (Primary Hubs)
+  'Madhapar (Bhuj)',
+  'Bhuj (Kutch)',
+  'Gandhidham (Kutch)',
+  'Anjar (Kutch)',
+  'Mandvi (Kutch)',
+  'Mundra (Kutch)',
+  'Nakhatrana (Kutch)',
+  'Bhachau (Kutch)',
+  'Rapar (Kutch)',
+  'Naliya / Abdasa (Kutch)',
+  // Major Gujarat Cities & Districts
+  'Ahmedabad',
+  'Surat',
+  'Vadodara',
+  'Rajkot',
+  'Bhavnagar',
+  'Jamnagar',
+  'Junagadh',
+  'Gandhinagar',
+  'Anand',
+  'Nadiad',
+  'Morbi',
+  'Mehsana',
+  'Surendranagar',
+  'Bharuch',
+  'Navsari',
+  'Valsad / Vapi',
+  'Porbandar',
+  'Patan',
+  'Palanpur / Banaskantha',
+  'Himatnagar / Sabarkantha',
+  'Godhra / Panchmahal',
+  'Botad',
+  'Amreli',
+  'Veraval / Somnath',
+  'Other Gujarat City / Village',
+];
 
 export const VolunteerForm: React.FC = () => {
   const [formData, setFormData] = useState<VolunteerFormData>({
     fullName: '',
     email: '',
     phone: '',
-    city: 'Bhuj, Gujarat',
+    city: 'Madhapar (Bhuj)',
+    customCity: '',
     ageGroup: '18-25',
-    roles: ['meal_distribution'],
-    availability: ['Weekends (Sat & Sun)'],
-    preferredShift: 'Morning (8:00 AM - 12:00 PM)',
+    roles: ['meal_distribution'] as VolunteerRole[],
+    availability: ['Friday Evening Seva (6:00 PM)', 'Sunday Morning Breakfast (8:30 AM)'],
     emergencyReliefOptIn: true,
     priorExperience: '',
     message: '',
@@ -57,7 +97,7 @@ export const VolunteerForm: React.FC = () => {
       return;
     }
     if (formData.roles.length === 0) {
-      setError('Please select at least one role of interest');
+      setError('Please select at least one way you would like to help');
       return;
     }
     if (formData.availability.length === 0) {
@@ -65,19 +105,28 @@ export const VolunteerForm: React.FC = () => {
       return;
     }
 
+    const effectiveCity = formData.city === 'Other Gujarat City / Village' && formData.customCity?.trim()
+      ? `${formData.customCity.trim()} (Gujarat)`
+      : formData.city;
+
     try {
       setLoading(true);
 
-      // Register volunteer in shared reactive store and sync to server
-      const result = await volunteerService.registerVolunteer(formData);
+      const submissionPayload: VolunteerFormData = {
+        ...formData,
+        city: effectiveCity,
+      };
 
-      // Send email dispatch to vansh.solanki58@gmail.com
-      await sendVolunteerRegistrationEmail(formData, result.id);
+      // Register volunteer in Supabase single source of truth
+      const result = await volunteerService.registerVolunteer(submissionPayload);
+
+      // Send email dispatch to admin
+      await sendVolunteerRegistrationEmail(submissionPayload, result.id);
 
       // Trigger automatic in-app notification
       notificationService.addNotification({
         title: 'New Volunteer Registered! 🎉',
-        message: `Welcome ${formData.fullName}! Your registration (ID: ${result.id}) has been confirmed and forwarded to admin (vansh.solanki58@gmail.com).`,
+        message: `Welcome ${formData.fullName}! Your registration (ID: ${result.id}) from ${effectiveCity} has been confirmed.`,
         category: 'volunteers',
         actionUrl: '/volunteer',
         actionLabel: 'View Status',
@@ -122,7 +171,7 @@ export const VolunteerForm: React.FC = () => {
                 required
                 value={formData.fullName}
                 onChange={handleInputChange}
-                placeholder="e.g. Rahul Patel"
+                placeholder="e.g. Ramesh Patel"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm transition"
               />
             </div>
@@ -144,30 +193,68 @@ export const VolunteerForm: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Email Address
+                Email Address (Optional)
               </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="e.g. rahul@example.com"
+                placeholder="e.g. ramesh@example.com"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm transition"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                City / Location
+                City / Location (Gujarat) <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 name="city"
                 value={formData.city}
                 onChange={handleInputChange}
-                placeholder="e.g. Madhapar, Bhuj, Gujarat"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm transition"
-              />
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm transition bg-white"
+              >
+                {GUJARAT_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {formData.city === 'Other Gujarat City / Village' && (
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Specify Your Gujarat City / Village / Taluka <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="customCity"
+                  required
+                  value={formData.customCity || ''}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Khavda, Kothara, Dahisara, Samakhiali..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm transition"
+                />
+              </div>
+            )}
+
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Age Bracket
+              </label>
+              <select
+                name="ageGroup"
+                value={formData.ageGroup}
+                onChange={handleInputChange}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm transition bg-white"
+              >
+                <option value="Under 18">Student (Under 18)</option>
+                <option value="18-25">18 - 25 years</option>
+                <option value="26-40">26 - 40 years</option>
+                <option value="40+">40+ years</option>
+              </select>
             </div>
           </div>
         </div>
@@ -179,7 +266,7 @@ export const VolunteerForm: React.FC = () => {
               <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
                 2
               </div>
-              <h3 className="text-lg font-bold text-slate-900">How Would You Like to Help?</h3>
+              <h3 className="text-lg font-bold text-slate-900">How Would You Like to Contribute?</h3>
             </div>
             <span className="text-xs text-slate-500">Select one or more</span>
           </div>
@@ -190,31 +277,36 @@ export const VolunteerForm: React.FC = () => {
           />
         </div>
 
-        {/* Section 3: Availability & Timing */}
+        {/* Section 3: Availability */}
         <div>
           <div className="flex items-center gap-2 mb-4 pb-2 border-b border-slate-100">
             <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
               3
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Availability & Preferences</h3>
+            <h3 className="text-lg font-bold text-slate-900">Seva Availability</h3>
           </div>
 
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-2">
-                Available Days
+                When can you join us for seva?
               </label>
-              <div className="flex flex-wrap gap-2">
-                {['Weekends (Sat & Sun)', 'Friday Meals (Women-led)', 'Weekdays', 'Flexible / Any Day'].map((day) => {
+              <div className="flex flex-wrap gap-2.5">
+                {[
+                  'Friday Evening Seva (6:00 PM)',
+                  'Sunday Morning Breakfast (8:30 AM)',
+                  'Weekend Seva (Sat & Sun)',
+                  'Anytime / Whenever Needed (Flexible)',
+                ].map((day) => {
                   const active = formData.availability.includes(day);
                   return (
                     <button
                       type="button"
                       key={day}
                       onClick={() => handleAvailabilityToggle(day)}
-                      className={`px-4 py-2 rounded-xl text-xs font-medium border transition ${
+                      className={`px-4 py-2.5 rounded-xl text-xs font-medium border transition ${
                         active
-                          ? 'bg-amber-500 text-white border-amber-500 shadow-2xs'
+                          ? 'bg-amber-500 text-white border-amber-500 shadow-2xs font-bold'
                           : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                       }`}
                     >
@@ -225,43 +317,8 @@ export const VolunteerForm: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Preferred Time Slot
-                </label>
-                <select
-                  name="preferredShift"
-                  value={formData.preferredShift}
-                  onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm transition bg-white"
-                >
-                  <option value="Morning (8:00 AM - 12:00 PM)">Morning (8:00 AM - 12:00 PM)</option>
-                  <option value="Afternoon (12:00 PM - 4:00 PM)">Afternoon (12:00 PM - 4:00 PM)</option>
-                  <option value="Sunday Shibir Shift (8:00 AM - 11:00 AM)">Sunday Shibir Shift (8:00 AM - 11:00 AM)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Age Bracket
-                </label>
-                <select
-                  name="ageGroup"
-                  value={formData.ageGroup}
-                  onChange={handleInputChange}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-100 outline-none text-sm transition bg-white"
-                >
-                  <option value="Under 18">Student (Under 18)</option>
-                  <option value="18-25">18 - 25 years</option>
-                  <option value="26-40">26 - 40 years</option>
-                  <option value="40+">40+ years</option>
-                </select>
-              </div>
-            </div>
-
             {/* Emergency Relief Opt-in */}
-            <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-start gap-3">
+            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-start gap-3">
               <input
                 type="checkbox"
                 id="emergencyOptIn"
@@ -276,7 +333,7 @@ export const VolunteerForm: React.FC = () => {
                   <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
                   Emergency Food Relief Team Opt-in
                 </span>
-                Yes, alert me via WhatsApp during emergency food relief operations or sudden food distribution drives in Bhuj.
+                Yes, alert me via WhatsApp during emergency food relief drives or special food distribution programs in Gujarat.
               </label>
             </div>
           </div>
@@ -288,7 +345,7 @@ export const VolunteerForm: React.FC = () => {
             <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs">
               4
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Message / Prior Volunteering (Optional)</h3>
+            <h3 className="text-lg font-bold text-slate-900">Message / Prior Seva Experience (Optional)</h3>
           </div>
 
           <textarea
@@ -305,7 +362,7 @@ export const VolunteerForm: React.FC = () => {
         <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-slate-500 text-center sm:text-left flex items-center gap-1.5">
             <Mail className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-            <span>Applications are automatically notified to <strong>vansh.solanki58@gmail.com</strong></span>
+            <span>Applications are forwarded to <strong>vansh.solanki58@gmail.com</strong></span>
           </p>
           <button
             type="submit"

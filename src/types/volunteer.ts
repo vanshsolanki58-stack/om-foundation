@@ -1,10 +1,11 @@
 export type VolunteerRole = 
-  | 'food_prep'
   | 'meal_distribution'
+  | 'food_prep'
+  | 'admin'
+  | 'social_media_admin'
   | 'logistics_transport'
   | 'outreach_fundraising'
-  | 'teaching_mentorship'
-  | 'social_media_admin';
+  | 'teaching_mentorship';
 
 export interface VolunteerRoleOption {
   id: VolunteerRole;
@@ -19,10 +20,11 @@ export interface VolunteerFormData {
   email: string;
   phone: string;
   city: string;
+  customCity?: string;
   ageGroup: string;
   roles: VolunteerRole[];
   availability: string[];
-  preferredShift: string;
+  preferredShift?: string;
   emergencyReliefOptIn: boolean;
   priorExperience?: string;
   message?: string;
