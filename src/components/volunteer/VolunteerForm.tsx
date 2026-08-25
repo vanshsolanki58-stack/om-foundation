@@ -317,6 +317,26 @@ export const VolunteerForm: React.FC = () => {
               </div>
             </div>
 
+            {/* WhatsApp Updates Opt-in */}
+            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="whatsappOptIn"
+                checked={formData.whatsappUpdatesOptIn !== false}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, whatsappUpdatesOptIn: e.target.checked }))
+                }
+                className="w-4 h-4 mt-0.5 accent-emerald-600 rounded"
+              />
+              <label htmlFor="whatsappOptIn" className="text-xs text-slate-700 cursor-pointer">
+                <span className="font-bold text-slate-900 block mb-0.5 flex items-center gap-1.5">
+                  <span className="text-emerald-600 font-extrabold text-sm">📱</span>
+                  Receive Seva Updates & Shibir Announcements on WhatsApp
+                </span>
+                Yes, send me WhatsApp updates and reminders for upcoming Friday evening meals, Sunday breakfast seva, and shibirs in Bhuj.
+              </label>
+            </div>
+
             {/* Emergency Relief Opt-in */}
             <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-start gap-3">
               <input
@@ -333,7 +353,7 @@ export const VolunteerForm: React.FC = () => {
                   <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
                   Emergency Food Relief Team Opt-in
                 </span>
-                Yes, alert me via WhatsApp during emergency food relief drives or special food distribution programs in Gujarat.
+                Yes, alert me via WhatsApp during emergency food relief drives or sudden food distribution programs in Gujarat.
               </label>
             </div>
           </div>

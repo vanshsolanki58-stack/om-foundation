@@ -25,6 +25,7 @@ export interface VolunteerFormData {
   roles: VolunteerRole[];
   availability: string[];
   preferredShift?: string;
+  whatsappUpdatesOptIn?: boolean;
   emergencyReliefOptIn: boolean;
   priorExperience?: string;
   message?: string;
