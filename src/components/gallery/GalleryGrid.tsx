@@ -25,16 +25,18 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({ days, onOpenUploadForD
     if (activeFilter === 'all') return true;
     const dateObj = new Date(d.servedOn + 'T00:00:00');
     const dayOfWeek = dateObj.getDay();
-    const captionLower = (d.caption || '').toLowerCase();
+    const notesLower = (d.notes || '').toLowerCase();
+    const photoCaptions = d.photos.map((p) => p.caption || '').join(' ').toLowerCase();
+    const textLower = `${notesLower} ${photoCaptions}`;
     
     if (activeFilter === 'friday') {
-      return dayOfWeek === 5 || captionLower.includes('friday') || captionLower.includes('dinner');
+      return dayOfWeek === 5 || textLower.includes('friday') || textLower.includes('dinner');
     }
     if (activeFilter === 'sunday') {
-      return dayOfWeek === 0 || captionLower.includes('sunday') || captionLower.includes('breakfast') || captionLower.includes('milk');
+      return dayOfWeek === 0 || textLower.includes('sunday') || textLower.includes('breakfast') || textLower.includes('milk');
     }
     if (activeFilter === 'shibir') {
-      return captionLower.includes('shibir') || captionLower.includes('sadhana') || captionLower.includes('meditation');
+      return textLower.includes('shibir') || textLower.includes('sadhana') || textLower.includes('meditation');
     }
     return true;
   };
