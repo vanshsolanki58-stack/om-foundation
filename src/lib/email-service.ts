@@ -9,7 +9,7 @@ const ADMIN_EMAIL = 'vansh.solanki58@gmail.com';
 
 /**
  * Dispatches volunteer registration details to admin (vansh.solanki58@gmail.com)
- * AND sends a personalized Thank You email to the volunteer (if email provided).
+ * AND configures native auto-response thank you email for the volunteer.
  */
 export async function sendVolunteerRegistrationEmail(
   data: VolunteerFormData,
@@ -24,15 +24,16 @@ export async function sendVolunteerRegistrationEmail(
   const roleList = data.roles.map((r) => roleLabels[r] || r).join(', ');
   const availList = data.availability.join(', ');
 
-  // 1. Admin Notification Payload
-  const adminPayload = {
+  // 1. Admin Notification Payload with FormSubmit configuration
+  const adminPayload: Record<string, any> = {
     _subject: `New Volunteer Registration: ${data.fullName} (${volunteerId}) - Om Foundation`,
     _template: 'table',
     _captcha: 'false',
+    _replyto: data.email?.trim() || ADMIN_EMAIL,
     "Volunteer ID": volunteerId,
     "Full Name": data.fullName,
     "WhatsApp Phone": data.phone,
-    "Email": data.email || "Not provided",
+    "Email": data.email?.trim() || "Not provided",
     "City / Location": data.city,
     "Roles Selected": roleList,
     "Seva Availability": availList,
@@ -43,60 +44,33 @@ export async function sendVolunteerRegistrationEmail(
     "Submission Time": new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
   };
 
+  // If volunteer provided an email, add auto-response confirmation
+  if (data.email && data.email.includes('@')) {
+    adminPayload._autoresponse = `Dhanyawaad ${data.fullName}! 🙏\n\nThank you for registering with Om Charitable Trust (ॐ चैरीटेबल ट्रस्ट).\n\nYour Volunteer ID: ${volunteerId}\nSelected Roles: ${roleList}\nSeva Location: ${data.city}\n\nWeekly Seva Schedule:\n• Friday Evening Meals: 6:00 PM\n• Sunday Breakfast: 8:30 AM\n• Shibirs: Dates announced via WhatsApp\n\nCenter Address: SHRI STUTI, MES Road, Madhapar, Bhuj, Gujarat\nContact: +91 98765 43210 / info@omfoundation.org\n\nतेज से तेजोमय • Om Foundation`;
+  }
+
   try {
-    // Send to Admin
-    const adminPromise = fetch(`https://formsubmit.co/ajax/${ADMIN_EMAIL}`, {
+    const response = await fetch(`https://formsubmit.co/ajax/${ADMIN_EMAIL}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
       body: JSON.stringify(adminPayload),
-    }).catch((err) => console.warn('[Email Service] Admin email error:', err));
+    });
 
-    // 2. If Volunteer provided their email, send them a Sacred Thank You Email
-    let volunteerPromise = Promise.resolve();
-    if (data.email && data.email.includes('@')) {
-      const thankYouPayload = {
-        _subject: `Dhanyawaad & Welcome to Om Foundation! 🙏 (Volunteer ID: ${volunteerId})`,
-        _template: 'box',
-        _captcha: 'false',
-        "Welcome": `Dear ${data.fullName}, Dhanyawaad for joining Om Charitable Trust (ॐ चैरीटेबल ट्रस्ट)!`,
-        "Your Volunteer ID": volunteerId,
-        "Registered Name": data.fullName,
-        "Location": data.city,
-        "Seva Areas": roleList,
-        "Availability": availList,
-        "WhatsApp Updates": data.whatsappUpdatesOptIn !== false ? "Active - You will receive seva reminders & shibir dates" : "Off",
-        "Weekly Seva Schedule": "• Friday Evening Meals: 6:00 PM | • Sunday Breakfast: 8:30 AM | • Shibirs: Announced on WhatsApp",
-        "Seva Center Address": "SHRI STUTI, MES Road, Madhapar, Bhuj, Gujarat, India",
-        "Helpline / Contact": "+91 98765 43210 / info@omfoundation.org",
-        "Blessing": "तेज से तेजोमय • May your seva bring nourishment and peace to all souls.",
-      };
-
-      volunteerPromise = fetch(`https://formsubmit.co/ajax/${data.email.trim()}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(thankYouPayload),
-      }).then(() => {
-        console.log(`[Email Service] Thank you email dispatched to volunteer: ${data.email}`);
-      }).catch((err) => console.warn('[Email Service] Volunteer thank you email error:', err));
-    }
-
-    await Promise.all([adminPromise, volunteerPromise]);
+    const result = await response.json().catch(() => null);
+    console.log('[Email Service] FormSubmit response:', result);
 
     return {
       success: true,
-      message: `Registration confirmed! A thank-you email has been sent.`,
+      message: `Registration notification sent to ${ADMIN_EMAIL}!`,
     };
   } catch (err: any) {
     console.error('[Email Service] Error in email dispatch:', err);
     return {
       success: true,
-      message: 'Volunteer saved successfully.',
+      message: 'Volunteer saved successfully in database.',
     };
   }
 }
