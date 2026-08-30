@@ -44,34 +44,34 @@ export const AboutPage: React.FC = () => {
       </div>
 
       {/* Core Pillars */}
-      <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 max-w-5xl mx-auto">
-        <h3 className="text-2xl font-bold mb-8 text-center">Core Pillars of Om Foundation</h3>
+      <div className="bg-white rounded-3xl p-8 sm:p-12 max-w-5xl mx-auto border border-amber-200/70 shadow-sm text-slate-900">
+        <h3 className="text-2xl font-bold mb-8 text-center text-slate-900">Core Pillars of Om Foundation</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
           {/* Pillar 1 - Spiritual (Dhyan Sadhna & Teachings) */}
-          <div className="space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 text-emerald-400 mx-auto flex items-center justify-center font-bold">
+          <div className="space-y-2 p-4 rounded-2xl bg-amber-50/60 border border-amber-100">
+            <div className="w-10 h-10 rounded-xl bg-amber-500 text-white mx-auto flex items-center justify-center font-bold shadow-2xs">
               1
             </div>
-            <h4 className="font-bold text-base">Dhyan Sadhna & Inner Power</h4>
-            <p className="text-xs text-slate-400">Deepening meditation, chakra awareness, and inner stillness through Guruji and Guruma's sacred guidance.</p>
+            <h4 className="font-bold text-base text-slate-900">Dhyan Sadhna & Inner Power</h4>
+            <p className="text-xs text-slate-600">Deepening meditation, chakra awareness, and inner stillness through Guruji and Guruma's sacred guidance.</p>
           </div>
 
           {/* Pillar 2 - Spiritual (Self-Sufficiency & Women's Shibirs) */}
-          <div className="space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 text-emerald-400 mx-auto flex items-center justify-center font-bold">
+          <div className="space-y-2 p-4 rounded-2xl bg-orange-50/60 border border-orange-100">
+            <div className="w-10 h-10 rounded-xl bg-orange-500 text-white mx-auto flex items-center justify-center font-bold shadow-2xs">
               2
             </div>
-            <h4 className="font-bold text-base">Self-Sufficiency & Shibirs</h4>
-            <p className="text-xs text-slate-400">Empowering seekers and women through regular retreats, spiritual bonding, and practical life wisdom.</p>
+            <h4 className="font-bold text-base text-slate-900">Self-Sufficiency & Shibirs</h4>
+            <p className="text-xs text-slate-600">Empowering seekers and women through regular retreats, spiritual bonding, and practical life wisdom.</p>
           </div>
 
           {/* Pillar 3 - Seva & Nutrition (Secondary Expression) */}
-          <div className="space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 text-emerald-400 mx-auto flex items-center justify-center font-bold">
+          <div className="space-y-2 p-4 rounded-2xl bg-teal-50/60 border border-teal-100">
+            <div className="w-10 h-10 rounded-xl bg-teal-600 text-white mx-auto flex items-center justify-center font-bold shadow-2xs">
               3
             </div>
-            <h4 className="font-bold text-base">Selfless Seva & Nutrition</h4>
-            <p className="text-xs text-slate-400">Channeling inner light into action through photo-verified, hygienic food distribution drives across Bhuj.</p>
+            <h4 className="font-bold text-base text-slate-900">Selfless Seva & Nutrition</h4>
+            <p className="text-xs text-slate-600">Channeling inner light into action through photo-verified, hygienic food distribution drives across Bhuj.</p>
           </div>
         </div>
       </div>
