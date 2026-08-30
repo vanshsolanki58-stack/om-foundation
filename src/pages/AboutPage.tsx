@@ -75,6 +75,18 @@ export const AboutPage: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* 🕉️ Sacred Shloka Inspiration */}
+      <div className="rounded-3xl bg-gradient-to-r from-amber-50 via-orange-50/80 to-amber-50 border border-amber-200/80 p-6 sm:p-8 max-w-5xl mx-auto text-center space-y-2 shadow-xs">
+        <span className="text-xs font-bold text-amber-800 uppercase tracking-widest block">
+          तैत्तिरीयोपनिषद् • Sacred Vedic Wisdom
+        </span>
+        <p className="text-base sm:text-lg font-serif font-extrabold text-slate-900">
+          “अन्नं न निन्द्यात्। तद् व्रतम्। अन्नं बहु कुर्वीत। तद् व्रतम्।”
+        </p>
+        <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto leading-relaxed">
+          <em>“Let food never be disrespected; let that be our sacred vow. Let food be shared in abundance with all living beings; let that be our highest dharma.”</em>
+        </p>
+      </div>
     </div>
   );
 };

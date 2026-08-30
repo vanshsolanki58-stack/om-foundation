@@ -10,6 +10,8 @@ interface GalleryGridProps {
 }
 
 export const GalleryGrid: React.FC<GalleryGridProps> = ({ days, onOpenUploadForDate }) => {
+  const [activeFilter, setActiveFilter] = useState<'all' | 'friday' | 'sunday' | 'shibir'>('all');
+
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     return days.length > 0 ? days[0].servedOn : new Date().toISOString().split('T')[0];
   });
@@ -18,20 +20,42 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({ days, onOpenUploadForD
     return days.length > 0 ? new Date(days[0].servedOn + 'T00:00:00') : new Date();
   });
 
-  // When days data loads or updates, ensure selectedDate and month are aligned if user hasn't actively picked
+  // Filter helper
+  const matchesFilter = (d: MealDay) => {
+    if (activeFilter === 'all') return true;
+    const dateObj = new Date(d.servedOn + 'T00:00:00');
+    const dayOfWeek = dateObj.getDay();
+    const captionLower = (d.caption || '').toLowerCase();
+    
+    if (activeFilter === 'friday') {
+      return dayOfWeek === 5 || captionLower.includes('friday') || captionLower.includes('dinner');
+    }
+    if (activeFilter === 'sunday') {
+      return dayOfWeek === 0 || captionLower.includes('sunday') || captionLower.includes('breakfast') || captionLower.includes('milk');
+    }
+    if (activeFilter === 'shibir') {
+      return captionLower.includes('shibir') || captionLower.includes('sadhana') || captionLower.includes('meditation');
+    }
+    return true;
+  };
+
+  // Filtered days
+  const filteredDays = days.filter(matchesFilter);
+
+  // When days data loads or filter changes, ensure selectedDate and month are aligned
   useEffect(() => {
-    if (days.length > 0) {
-      const exists = days.some((d) => d.servedOn === selectedDate);
+    if (filteredDays.length > 0) {
+      const exists = filteredDays.some((d) => d.servedOn === selectedDate);
       if (!exists) {
-        setSelectedDate(days[0].servedOn);
-        setCurrentMonth(new Date(days[0].servedOn + 'T00:00:00'));
+        setSelectedDate(filteredDays[0].servedOn);
+        setCurrentMonth(new Date(filteredDays[0].servedOn + 'T00:00:00'));
       }
     }
-  }, [days]);
+  }, [days, activeFilter]);
 
-  // Dates with photos map
+  // Dates with photos map (filtered)
   const daysMap = new Map<string, MealDay>();
-  days.forEach((d) => {
+  filteredDays.forEach((d) => {
     if (d.photos && d.photos.length > 0) {
       daysMap.set(d.servedOn, d);
     }
@@ -69,8 +93,8 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({ days, onOpenUploadForD
     return `${year}-${m}-${d}`;
   };
 
-  const selectedDayData = daysMap.get(selectedDate);
-  const activeDatesList = days.filter((d) => d.photos && d.photos.length > 0);
+  const selectedDayData = daysMap.get(selectedDate) || days.find(d => d.servedOn === selectedDate);
+  const activeDatesList = filteredDays.filter((d) => d.photos && d.photos.length > 0);
 
   const handleSelectActiveDate = (dateStr: string) => {
     setSelectedDate(dateStr);
@@ -78,13 +102,65 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({ days, onOpenUploadForD
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
+      {/* 🏷️ Interactive Seva Program Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/80">
+        <button
+          type="button"
+          onClick={() => setActiveFilter('all')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            activeFilter === 'all'
+              ? 'bg-amber-500 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <span>✨ All Seva Drives</span>
+          <span className="text-[10px] opacity-80">({days.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveFilter('friday')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            activeFilter === 'friday'
+              ? 'bg-amber-500 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <span>🍲 Friday Meals (Women-led)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveFilter('sunday')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            activeFilter === 'sunday'
+              ? 'bg-amber-500 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <span>🥛 Sunday Breakfast</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveFilter('shibir')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            activeFilter === 'shibir'
+              ? 'bg-amber-500 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+          }`}
+        >
+          <span>☀️ Shibirs & Gatherings</span>
+        </button>
+      </div>
+
       {/* Quick Jump Bar if there are active distribution dates */}
-      {activeDatesList.length > 0 && (
+      {activeDatesList.length > 0 ? (
         <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-2 text-xs font-bold text-amber-900 shrink-0">
             <Sparkles className="w-4 h-4 text-amber-600" />
-            <span>Active Distribution Dates:</span>
+            <span>Matching Distribution Dates:</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {activeDatesList.map((d) => {
@@ -106,6 +182,10 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({ days, onOpenUploadForD
               );
             })}
           </div>
+        </div>
+      ) : (
+        <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/60 text-xs text-amber-800 flex items-center gap-2">
+          <span>No dates match this specific category yet. Upload a photo or switch to "All Seva Drives".</span>
         </div>
       )}
 

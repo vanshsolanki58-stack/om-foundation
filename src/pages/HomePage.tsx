@@ -133,6 +133,21 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* 🕉️ Sacred Vedic Shloka Top Ribbon */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 -mt-2">
+        <div className="rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/80 to-amber-50 border border-amber-200/70 p-3.5 sm:p-4 text-center shadow-xs">
+          <p className="text-xs sm:text-sm font-serif font-bold text-amber-950 tracking-wide flex items-center justify-center gap-2 flex-wrap">
+            <span className="text-amber-600">🕉️</span>
+            <span>ॐ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः</span>
+            <span className="text-amber-400 hidden sm:inline">•</span>
+            <span className="text-amber-800">अन्नदानं परं दानम्</span>
+            <span className="text-amber-400 hidden sm:inline">•</span>
+            <span className="text-amber-900 font-extrabold">तेज से तेजोमय</span>
+            <span className="text-amber-600">🕉️</span>
+          </p>
+        </div>
+      </section>
+
       {/* ✨ Guruji & Guruma Spiritual Mentors Section */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
@@ -141,14 +156,19 @@ export const HomePage: React.FC = () => {
             {/* Portrait Frame with <img> Tag */}
             <div className="aspect-[4/3] sm:h-80 w-full rounded-2xl bg-gradient-to-b from-[#f7f1e7] to-[#ede3d2] border border-amber-200/50 flex flex-col items-center justify-center relative overflow-hidden group">
               <img
-                src="/src/assets/guruji.jpg"
+                src="./assets/guruji.jpg"
                 alt="Guruji - Spiritual Guide & Mentor"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 onError={(e) => {
-                  // If image not added yet, show peaceful icon fallback
-                  (e.target as HTMLImageElement).style.display = 'none';
-                  const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'flex';
+                  // Fallback to /src/assets if needed or show graceful icon
+                  const img = e.target as HTMLImageElement;
+                  if (!img.src.includes('/src/assets/')) {
+                    img.src = '/src/assets/guruji.jpg';
+                  } else {
+                    img.style.display = 'none';
+                    const fallback = img.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }
                 }}
               />
               <div className="hidden flex-col items-center justify-center w-full h-full absolute inset-0">
@@ -177,14 +197,18 @@ export const HomePage: React.FC = () => {
             {/* Portrait Frame with <img> Tag */}
             <div className="aspect-[4/3] sm:h-80 w-full rounded-2xl bg-gradient-to-b from-[#f7f1e7] to-[#ede3d2] border border-amber-200/50 flex flex-col items-center justify-center relative overflow-hidden group">
               <img
-                src="/src/assets/guruma.jpg"
+                src="./assets/guruma.jpg"
                 alt="Guruma - Motherly Love & Seva"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 onError={(e) => {
-                  // If image not added yet, show peaceful icon fallback
-                  (e.target as HTMLImageElement).style.display = 'none';
-                  const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'flex';
+                  const img = e.target as HTMLImageElement;
+                  if (!img.src.includes('/src/assets/')) {
+                    img.src = '/src/assets/guruma.jpg';
+                  } else {
+                    img.style.display = 'none';
+                    const fallback = img.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }
                 }}
               />
               <div className="hidden flex-col items-center justify-center w-full h-full absolute inset-0">
