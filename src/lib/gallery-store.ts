@@ -9,11 +9,6 @@ class GalleryService {
 
   constructor() {
     this.loadInitial();
-    if (typeof window !== 'undefined') {
-      setInterval(() => {
-        this.fetchFromServer();
-      }, 5000);
-    }
   }
 
   private async loadInitial() {

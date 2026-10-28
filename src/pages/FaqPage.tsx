@@ -13,7 +13,7 @@ export function FaqPage() {
     },
     {
       q: "How can I volunteer for Friday or Sunday meal drives?",
-      a: "Simply head over to our Volunteer Sign-Up page, select your preferred roles (e.g., cooking, packaging, or serving), pick your available days, and you will immediately receive your volunteer pass and drive alerts.",
+      a: "Simply head over to our Volunteer Sign-Up page, select your preferred seva areas (Meal Serving, Food Prep, or Admin & Coordination), pick your available days, and you will receive your digital volunteer pass and updates.",
     },
     {
       q: "Are donations eligible for tax exemption?",

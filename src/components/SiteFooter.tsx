@@ -66,6 +66,11 @@ export function SiteFooter() {
                   FAQ
                 </Link>
               </li>
+              <li>
+                <Link to="/contact" className="text-slate-600 hover:text-amber-700 transition">
+                  Contact Us
+                </Link>
+              </li>
             </ul>
           </div>
 
