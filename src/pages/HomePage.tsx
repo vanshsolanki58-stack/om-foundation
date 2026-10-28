@@ -133,20 +133,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 🕉️ Sacred Vedic Shloka Top Ribbon */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 -mt-2">
-        <div className="rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50/80 to-amber-50 border border-amber-200/70 p-3.5 sm:p-4 text-center shadow-xs">
-          <p className="text-xs sm:text-sm font-serif font-bold text-amber-950 tracking-wide flex items-center justify-center gap-2 flex-wrap">
-            <span className="text-amber-600">🕉️</span>
-            <span>ॐ सर्वे भवन्तु सुखिनः सर्वे सन्तु निरामयाः</span>
-            <span className="text-amber-400 hidden sm:inline">•</span>
-            <span className="text-amber-800">अन्नदानं परं दानम्</span>
-            <span className="text-amber-400 hidden sm:inline">•</span>
-            <span className="text-amber-900 font-extrabold">तेज से तेजोमय</span>
-            <span className="text-amber-600">🕉️</span>
-          </p>
-        </div>
-      </section>
 
       {/* ✨ Guruji & Guruma Spiritual Mentors Section */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6">
